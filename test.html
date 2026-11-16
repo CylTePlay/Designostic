@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      canvas {
+        filter: url(#fuzzy-grain-blur);
+      }
+    </style>
+  </head>
+  <body>
+    <canvas></canvas>
+
+    <svg style="position: absolute; width: 0; height: 0; pointer-events: none">
+      <!-- Note: We expand the canvas a bit more (-30%) so the blur doesn't get clipped -->
+      <filter
+        id="fuzzy-grain-blur"
+        x="-30%"
+        y="-30%"
+        width="160%"
+        height="160%"
+      >
+        <!-- 1. Generate noise -->
+        <feTurbulence
+          type="fractalNoise"
+          baseFrequency="0.5"
+          numOctaves="3"
+          result="noise"
+        />
+
+        <!-- 2. Displace edges -->
+        <feDisplacementMap
+          in="SourceGraphic"
+          in2="noise"
+          scale="12"
+          xChannelSelector="R"
+          yChannelSelector="G"
+          result="displaced"
+        />
+
+        <!-- 3. Add grain texture -->
+        <feColorMatrix
+          type="saturate"
+          values="0"
+          in="noise"
+          result="monoNoise"
+        />
+        <feBlend
+          in="displaced"
+          in2="monoNoise"
+          mode="multiply"
+          result="blended"
+        />
+        <feComposite
+          in="blended"
+          in2="displaced"
+          operator="in"
+          result="grainyElement"
+        />
+
+        <!-- 4. BLUR EVERYTHING AT THE END -->
+        <feGaussianBlur in="grainyElement" stdDeviation=".8" />
+      </filter>
+    </svg>
+
+    <script>
+      function draw() {
+        const canvas = document.querySelector("canvas");
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "rgb(200 0 0)";
+        ctx.fillRect(10, 10, 50, 50);
+
+        ctx.fillStyle = "rgb(0 0 200 / 50%)";
+        ctx.fillRect(30, 30, 50, 50);
+      }
+      draw();
+    </script>
+  </body>
+</html>

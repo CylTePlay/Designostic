@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Designostic — Données</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 0;
+        padding: 2rem 1.5rem;
+        background: #fff;
+        color: #000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1100px;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      h1 {
+        margin: 0;
+        font-style: italic;
+        line-height: 1.1;
+      }
+
+      .small {
+        font-style: italic;
+        font-size: 14px;
+        color: #404040;
+        margin: 0;
+      }
+
+      /* Barre d'outils */
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      input[type="text"] {
+        border: 1px solid black;
+        border-radius: 999999px;
+        font-size: 1rem;
+        padding: 0.35rem 1rem;
+        font-style: italic;
+        outline: none;
+        width: 240px;
+      }
+
+      .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      button {
+        border-radius: 999999px;
+        background-color: #e44dff;
+        color: white;
+        border: none;
+        padding: 0.4rem 1.5rem;
+        font-style: italic;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+
+      button:active {
+        opacity: 0.8;
+      }
+
+      /* Tableau épuré */
+      .table-container {
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        font-size: 0.9rem;
+      }
+
+      th {
+        font-style: italic;
+        font-weight: normal;
+        padding: 0.75rem 0.5rem;
+        border-bottom: 2px solid black;
+        white-space: nowrap;
+      }
+
+      td {
+        padding: 0.65rem 0.5rem;
+        border-bottom: 1px solid #e5e5e5;
+        vertical-align: middle;
+      }
+
+      tr:hover td {
+        background-color: #fcfcfc;
+      }
+
+      .num {
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+      }
+
+      th.num {
+        text-align: right;
+      }
+
+      .empty {
+        text-align: center;
+        padding: 2.5rem;
+        color: #777;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Designostic</h1>
+        <p class="small">Tableau des réponses collectées</p>
+      </header>
+
+      <section class="toolbar">
+        <input
+          type="text"
+          id="search"
+          placeholder="Rechercher nom ou société..."
+        />
+
+        <div class="toolbar-right">
+          <span class="small" id="meta-info">0 réponses • en attente</span>
+          <button id="refreshBtn">Actualiser</button>
+        </div>
+      </section>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Participant</th>
+              <th>Société</th>
+              <th>Consent.</th>
+              <th>Emploie</th>
+              <th class="num">Artistique</th>
+              <th class="num">Technique</th>
+              <th class="num">Recherche</th>
+              <th class="num">Stratégique</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr>
+              <td colspan="9" class="empty">Chargement...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "http://localhost:3008/data";
+      let dataset = [];
+
+      const tbody = document.querySelector("#tbody");
+      const searchInput = document.querySelector("#search");
+      const refreshBtn = document.querySelector("#refreshBtn");
+      const metaInfo = document.querySelector("#meta-info");
+
+      function formatPercent(val) {
+        if (val === undefined || isNaN(val)) return "-";
+        return (Number(val) * 100).toFixed(1) + "%";
+      }
+
+      function formatDate(ts) {
+        if (!ts) return "-";
+        const d = new Date(ts);
+        return d.toLocaleDateString("fr-FR", {
+          day: "2-digit",
+          month: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      function renderTable() {
+        const query = searchInput.value.trim().toLowerCase();
+        const filtered = dataset.filter((item) => {
+          const name = (item.fullname || "").toLowerCase();
+          const comp = (item.company || "").toLowerCase();
+          return name.includes(query) || comp.includes(query);
+        });
+
+        metaInfo.textContent = `${
+          filtered.length
+        } réponse(s) • màj ${new Date().toLocaleTimeString("fr-FR")}`;
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" class="empty">Aucune donnée trouvée</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = filtered
+          .map((row) => {
+            const collab =
+              String(row.collaboration) === "true" || row.collaboration === true
+                ? "Oui"
+                : "Non";
+
+            const employs =
+              Array.isArray(row.employs) && row.employs.length
+                ? row.employs.join(", ")
+                : "-";
+
+            return `
+              <tr>
+                <td>${formatDate(row.date)}</td>
+                <td>${row.fullname || "-"}</td>
+                <td>${row.company || "-"}</td>
+                <td>${collab}</td>
+                <td>${employs}</td>
+                <td class="num">${formatPercent(row.artistique)}</td>
+                <td class="num">${formatPercent(row.technique)}</td>
+                <td class="num">${formatPercent(row.recherche)}</td>
+                <td class="num">${formatPercent(row.strategique)}</td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      async function fetchData() {
+        try {
+          const res = await fetch(API_URL);
+          if (!res.ok) throw new Error("Erreur réseau");
+          const data = await res.json();
+          dataset = Array.isArray(data)
+            ? data.sort((a, b) => (b.date || 0) - (a.date || 0))
+            : [];
+          renderTable();
+        } catch (e) {
+          console.error(e);
+          metaInfo.textContent = "Erreur de connexion au serveur";
+        }
+      }
+
+      searchInput.addEventListener("input", renderTable);
+      refreshBtn.addEventListener("click", fetchData);
+
+      fetchData();
+      setInterval(fetchData, 60000); // Polling toutes les minutes
+    </script>
+  </body>
+</html>

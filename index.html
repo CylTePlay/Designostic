@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Designostic</title>
+    <script src="sortable.1.15.7.min.js"></script>
+    <script src="p5.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: system-ui;
+      }
+
+      body {
+        margin: 0;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        height: 100svh;
+      }
+
+      main {
+        flex: 1;
+      }
+
+      section {
+        width: 100%;
+        max-width: 576px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+      }
+
+      h1 {
+        text-align: center;
+        text-wrap: balance;
+        line-height: 1.1;
+        margin: 0;
+        font-style: italic;
+      }
+
+      h2 {
+        text-align: center;
+        font-weight: normal;
+        margin: 0;
+      }
+
+      sub-range {
+        background: linear-gradient(326.54deg, #ea73ff 50.47%, #5f0070 103.99%);
+        height: 100px;
+        width: 30px;
+        display: block;
+        filter: url("#fuzzy-grain-blur");
+        border-radius: 99rem;
+      }
+
+      .ds {
+        filter: drop-shadow(0px 3px 2px black);
+      }
+
+      svg {
+        height: 60px;
+      }
+
+      .multibarres {
+        display: flex;
+        position: relative;
+        /* flex: 1; */
+
+        .handle {
+          touch-action: none;
+        }
+      }
+
+      #ranges {
+        display: flex;
+        flex-direction: column;
+
+        height: 500px;
+
+        svg {
+          position: absolute;
+          user-select: none;
+          width: calc(100% - 24px);
+        }
+      }
+
+      #labels {
+        display: flex;
+        flex-direction: column;
+        align-self: stretch;
+        flex: 1;
+
+        span {
+          align-content: center;
+          padding-left: 2rem;
+        }
+      }
+
+      ul {
+        list-style-type: none;
+        padding-left: 0;
+
+        li {
+          width: 100%;
+          background-color: #5f0070;
+          color: white;
+          padding: 1rem;
+          text-align: center;
+
+          user-select: none;
+
+          margin-bottom: 1rem;
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+      }
+
+      .sortable-ghost {
+        background-color: #e44dff;
+      }
+
+      footer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2rem;
+        padding: 2rem;
+        font-style: italic;
+
+        button {
+          border-radius: 99999px;
+          background-color: #e44dff;
+          color: white;
+          padding: 0.5rem 2rem;
+          border: none;
+          font-style: inherit;
+        }
+
+        div {
+          background-color: #ccb799;
+          border-radius: 99999px;
+          color: white;
+          padding: 0.5rem 1rem;
+        }
+      }
+
+      canvas {
+        width: 100%;
+        aspect-ratio: 1/1;
+      }
+
+      chart-radar {
+        radar-point {
+          display: none;
+        }
+
+        display: grid;
+        place-items: center;
+        touch-action: none;
+
+        span {
+          z-index: 1;
+          color: white;
+          filter: url(#outline);
+          pointer-events: none;
+        }
+
+        div {
+          z-index: 1;
+          place-self: end center;
+          border-radius: 999999px;
+          padding: 0.25rem 1rem;
+          background-color: white;
+          border: 1px solid grey;
+        }
+
+        canvas {
+          touch-action: none;
+        }
+
+        > * {
+          grid-area: 1/1;
+        }
+      }
+
+      .button {
+        border-radius: 999999px;
+        padding: 0.5rem 4rem;
+        background-color: transparent;
+        border: solid 2px grey;
+        font-style: italic;
+      }
+
+      .primary {
+        border: none;
+        background-color: #e44dff;
+        color: white;
+        font-style: italic;
+      }
+
+      .custom-checkbox {
+        /* 1. Remove native OS/browser styling */
+        appearance: none;
+        -webkit-appearance: none;
+
+        /* 2. Exact 24x24 dimensions */
+        width: 24px;
+        height: 24px;
+        min-width: 24px; /* Prevents shrinking in flex containers */
+        margin: 0;
+
+        /* 3. Transparent background & border */
+        background-color: transparent;
+        border: 2px solid #000;
+
+        cursor: pointer;
+        vertical-align: middle;
+        position: relative;
+        transition: border-color 0.15s ease;
+      }
+
+      /* 4. Checked state: Black SVG checkmark on a transparent background */
+      .custom-checkbox:checked {
+        background-color: transparent;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 16px 16px;
+      }
+
+      /* 5. Accessibility: preserve focus ring for keyboard users */
+      .custom-checkbox:focus-visible {
+        outline: 2px solid #000;
+        outline-offset: 2px;
+      }
+
+      /* Optional wrapper helper to align the text with the checkbox */
+      .checkbox-container {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+
+      .big-input {
+        border: 1px solid black;
+        border-radius: 999999px;
+        font-size: 1.5rem;
+        padding: 0.25rem 0;
+        font-style: italic;
+        width: 237px;
+      }
+
+      .small {
+        font-style: italic;
+        font-size: 14px;
+        color: #404040;
+      }
+    </style>
+  </head>
+  <body>
+    <main data-current-slide="0">
+      <section
+        data-key="0"
+        data-footerless
+        style="justify-content: space-evenly"
+      >
+        <span></span>
+        <div>
+          <h1>Designostic</h1>
+          <h2>
+            La plateforme de positionnement design pour les partenaires de
+            l'EDNA
+          </h2>
+        </div>
+        <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 1rem;
+              padding: 1rem 0;
+            "
+          >
+            <input
+              type="checkbox"
+              class="custom-checkbox"
+              name="consent"
+              id="consent"
+            />
+            <label for="consent" class="small"
+              >Je consens à ce que mes données soient utilisées par le personnel
+              de l'EDNA à des fins de recherche</label
+            >
+          </div>
+          <div>
+            <button
+              id="startBtn"
+              onpointerdown="moveToNextSlide(event)"
+              style="
+                border-radius: 999999px;
+                color: white;
+                background-color: #e44dff;
+                border: none;
+                padding: 0.5rem 2rem;
+                text-align: center;
+                font-size: 1.5rem;
+                width: 100%;
+                font-style: italic;
+              "
+            >
+              Commencer
+            </button>
+          </div>
+        </div>
+      </section>
+      <section
+        data-key="1"
+        data-footerless
+        style="justify-content: center; align-items: center"
+      >
+        <h1 style="padding-bottom: 2rem">
+          Avez-vous déjà collaboré avec des designers dans le cadre d'un projet,
+          stage ou apprentissage ?
+        </h1>
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+          "
+        >
+          <button onpointerdown="collaboration(true)" class="button big-input">
+            Oui
+          </button>
+          <button onpointerdown="collaboration(false)" class="button big-input">
+            Non
+          </button>
+        </div>
+      </section>
+      <section
+        data-key="2"
+        data-footerless=""
+        style="justify-content: space-between"
+      >
+        <span></span>
+        <div style="display: flex; flex-direction: column; gap: 2rem">
+          <h1>Qui êtes-vous ?</h1>
+          <div
+            style="display: flex; flex-direction: column; align-items: center"
+          >
+            <h2 style="margin-bottom: 0.5rem">
+              <label for="company">Nom de votre société :</label>
+            </h2>
+            <input
+              type="text"
+              name="company"
+              id="company"
+              placeholder="..."
+              class="big-input"
+              style="text-align: center"
+            />
+          </div>
+          <div
+            style="display: flex; flex-direction: column; align-items: center"
+          >
+            <h2 style="margin-bottom: 0.5rem">
+              <label for="fullname">Vos nom et prénom :</label>
+            </h2>
+            <input
+              type="text"
+              name="fullname"
+              id="fullname"
+              placeholder="..."
+              class="big-input"
+              style="text-align: center"
+            />
+          </div>
+        </div>
+        <button
+          onpointerdown="moveToNextSlide()"
+          style="margin-bottom: 2rem"
+          class="button primary"
+        >
+          Valider ma réponse
+        </button>
+      </section>
+      <section data-key="3" style="justify-content: space-between">
+        <span></span>
+        <div style="text-align: center">
+          <h1>Employez-vous des designers ?</h1>
+          <p class="small" style="text-align: center">
+            Cochez le ou les éléments puis validez votre réponse
+          </p>
+        </div>
+
+        <ul style="display: flex; flex-direction: column; gap: 1rem">
+          <button
+            class="button"
+            style="height: 49px; font-size: 1.5rem"
+            onpointerdown="toggleEmploy(event)"
+          >
+            salarié
+          </button>
+          <button
+            class="button"
+            style="height: 49px; font-size: 1.5rem"
+            onpointerdown="toggleEmploy(event)"
+          >
+            freelance
+          </button>
+          <button
+            class="button"
+            style="height: 49px; font-size: 1.5rem"
+            onpointerdown="toggleEmploy(event)"
+          >
+            stagiaire
+          </button>
+          <button
+            class="button"
+            style="height: 49px; font-size: 1.5rem"
+            onpointerdown="toggleEmploy(event)"
+          >
+            alternant
+          </button>
+          <button
+            class="button"
+            style="height: 49px; font-size: 1rem"
+            onpointerdown="toggleEmploy(event)"
+          >
+            je n'emploie pas de designer
+          </button>
+        </ul>
+        <span></span>
+      </section>
+      <section data-key="4">
+        <h1>Pour vous, un·e designer doit :</h1>
+        <p class="small" style="text-align: center">
+          Déplacez les curseurs pour accorder plus ou moins d'importance à
+          chaque réponse
+        </p>
+        <span style="flex: 1"></span>
+        <div
+          class="multibarres"
+          onpointermove="dragHandleUpdate(event)"
+          onpointercancel="dragHandleStop(event)"
+          onpointerup="dragHandleStop(event)"
+          data-segments="first"
+        >
+          <div id="ranges"></div>
+          <div id="labels"></div>
+        </div>
+        <span style="flex: 1"></span>
+      </section>
+      <section data-key="5">
+        <h1>Selon vous, un·e designer créatif·ve, c'est surtout :</h1>
+        <p class="small" style="text-align: center">
+          Déplacez les curseurs pour accorder plus ou moins d'importance à
+          chaque réponse
+        </p>
+        <span style="flex: 1"></span>
+        <div
+          class="multibarres"
+          onpointermove="dragHandleUpdate(event)"
+          onpointercancel="dragHandleStop(event)"
+          onpointerup="dragHandleStop(event)"
+          data-segments="second"
+        >
+          <div id="ranges"></div>
+          <div id="labels"></div>
+        </div>
+        <span style="flex: 1"></span>
+      </section>
+      <section data-key="6">
+        <h1>Quels outils le.la designer doit-il.elle savoir le plus utiliser dans sa pratique ?</h1>
+        <p class="small" style="text-align: center">
+          Classez chaque élément par ordre d'importance
+        </p>
+        <ul class="sortlist">
+          <li data-type="artistique" draggable="false">
+            Outils d'expression visuelle (Dessin, Suite Adobe, CAO…).
+          </li>
+          <li data-type="technique" draggable="false">
+            Outils de conception / fabrication.(Logiciel 3D, Maquette, Atelier Fab).
+          </li>
+          <li data-type="technique" draggable="false">
+            Outils de gestion projet (Suite Office, Trello, Notion, Canva, Ateliers collaboratifs…)
+          </li>
+          <li data-type="strategique" draggable="false">
+            Outils de recherche / analyse (Google Scholar, Cairn, Questionnaires, sondages, Entretiens, Observations terrain…)
+          </li>
+        </ul>
+      </section>
+      <section data-key="7">
+        <h1>La·e designer doit-il utiliser l’IA pour : </h1>
+        <p class="small" style="text-align: center">
+          Placez les pastilles selon l'importance de la réponse : près du centre
+          si elle est primordiale et loin du centre si elle n'est pas importante
+        </p>
+        <span style="flex: 1"></span>
+        <chart-radar>
+          <radar-point data-type="technique"
+            >Générer des images / visuels</radar-point
+          >
+          <radar-point data-type="artistique"
+            >Trouver des idées / pistes artistiques</radar-point
+          >
+          <radar-point data-type="strategique"
+            >Analyser et structurer des données</radar-point
+          >
+          <radar-point data-type="recherche"
+            >Rechercher de l'information</radar-point
+          >
+          <span>Designer</span>
+          <div>label</div>
+          <canvas></canvas>
+        </chart-radar>
+        <span style="flex: 1"></span>
+      </section>
+      <section data-key="8">
+        <h1>Attendez-vous principalement d’un·e designer, qu’iel :</h1>
+        <p class="small" style="text-align: center">
+          Déplacez les curseurs pour accorder plus ou moins d'importance à
+          chaque réponse
+        </p>
+        <span style="flex: 1"></span>
+        <div
+          class="multibarres"
+          onpointermove="dragHandleUpdate(event)"
+          onpointercancel="dragHandleStop(event)"
+          onpointerup="dragHandleStop(event)"
+          data-segments="third"
+        >
+          <div id="ranges"></div>
+          <div id="labels"></div>
+        </div>
+        <span style="flex: 1"></span>
+      </section>
+      <section data-key="9">
+        <h1>Dans le contexte d’un projet visant à améliorer l’accueil dans les Maisons France* Services d’un département, à partir des retours et des difficultés des usagers, comment la.le designer intervient-iel :</h1>
+        <p class="small" style="text-align: center">
+          Classez chaque élément par ordre d'importance (le plus important est en haut)
+        </p>
+        <ul class="sortlist">
+          <li data-type="artistique" draggable="false">
+            Par la narration et la présentation des données
+          </li>
+          <li data-type="technique" draggable="false">
+            Par la mise en forme d’un produit ou d’un service à partir de contraintes imposées
+          </li>
+          <li data-type="strategique" draggable="false">
+            Par la définition des besoins et l’identification des opportunités
+          </li>
+          <li data-type="recherche" draggable="false">
+            Par la collecte et l’analyse de données (questionnaires, entretiens, observations, synthèse etc.)
+          </li>
+        </ul>
+      </section>
+      <section data-key="10">
+        <h1>
+          Dans votre structure, avec qui la·le designer est-iel en lien direct :
+        </h1>
+        <p class="small" style="text-align: center">
+          Rapprochez les pastilles pour définir des liens étroits, ou
+          éloignez-les si leur relation est faible ou inexistante
+        </p>
+        <span style="flex: 1"></span>
+        <chart-radar>
+          <radar-point data-type="recherche">Les chercheurs/experts académiques et universitaires (urbaniste, géographe, sociologue)</radar-point>
+          <radar-point data-type="strategique"
+            >Les commanditaires/clients</radar-point
+          >
+          <radar-point data-type="technique"
+            >Les ingénieurs (service R&D)</radar-point
+          >
+          <radar-point data-type="strategique"
+            >Les services communication et marketing</radar-point
+          >
+          <radar-point data-type="recherche"
+            >Les chercheurs/experts académiques et universitaires (urbaniste, géographe, sociologue)</radar-point
+          >
+          <radar-point data-type="technique"
+            >Les fabricants (service technique, développeur, imprimeur,...)</radar-point
+          >
+          <radar-point data-type="recherche"
+            >Les usagers du produits </radar-point
+          >
+          <radar-point data-type="artistique"
+            >Les pairs (illustrateurs, designers sonores, scénographes, artistes)</radar-point
+          >
+          <span>Designer</span>
+          <div>label</div>
+          <canvas></canvas>
+        </chart-radar>
+        <span style="flex: 1"></span>
+      </section>
+      <section data-key="11">
+        <h1>Selon vous, de quel métier se rapproche celui de designer :</h1>
+        <p class="small" style="text-align: center">
+          Placez les pastilles métier près du centre si elles correspondent au
+          métier de designer, et éloignez-les si ce n'est pas le cas
+        </p>
+        <span style="flex: 1"></span>
+        <chart-radar>
+          <radar-point data-type="recherche">Commerce et marketing</radar-point>
+          <radar-point data-type="artistique">Artisanat et arts plastiques</radar-point>
+          <radar-point data-type="technique">Ingénierie et sciences informatiques</radar-point>
+          <radar-point data-type="strategique">Sciences humaines, psychologiques et sociales</radar-point>
+          <span>Designer</span>
+          <div>label</div>
+          <canvas></canvas>
+        </chart-radar>
+        <span style="flex: 1"></span>
+      </section>
+      <section data-key="12">
+        <h1>La·e designer doit utiliser l'IA pour :</h1>
+        <p class="small" style="text-align: center">
+          La distance des pastilles au centre représente l'importance de l'usage
+          pour un designer
+        </p>
+        <span style="flex: 1"></span>
+        <chart-radar>
+          <radar-point data-type="technique"
+            >Générer des images / visuels</radar-point
+          >
+          <radar-point data-type="artistique"
+            >Trouver des idées / pistes artistiques</radar-point
+          >
+          <radar-point data-type="strategique"
+            >Analyser et structurer des données</radar-point
+          >
+          <radar-point data-type="recherche"
+            >Rechercher de l'information</radar-point
+          >
+          <span>Designer</span>
+          <div>label</div>
+          <canvas></canvas>
+        </chart-radar>
+        <span style="flex: 1"></span>
+      </section>
+      <section data-key="13">
+        <h1>Vous voulez développer un nouveau produit, quelle tâche confiez-vous aux designers ?</h1>
+        <p class="small" style="text-align: center">
+          Classez chaque élément par ordre d'importance (le plus important est en haut)
+        </p>
+        <ul class="sortlist">
+          <li data-type="artistique" draggable="false">
+            S’occuper de l’esthétique du produit
+          </li>
+          <li data-type="technique" draggable="false">
+            Exécuter des tâches et produire des maquettes, prototypes, visuels
+          </li>
+          <li data-type="strategique" draggable="false">
+            Coordonner les équipes de production et faire l’intermédiaire avec le client
+          </li>
+          <li data-type="recherche" draggable="false">
+            Interroger les usagers et les données (in)disponibles (entretien, data, etc.)
+          </li>
+        </ul>
+      </section>
+      <section data-key="14">
+        <h1>
+          Qu'attendez-vous qu'un·e designer prenne en compte lors d'un projet ?
+        </h1>
+        <p class="small" style="text-align: center">
+          Plus vous placez une pastille près du centre, plus vous estimez la
+          responsabilité importante.
+        </p>
+        <span style="flex: 1"></span>
+        <chart-radar>
+          <radar-point data-type="strategique"
+            >Limite son impact écologique et environnemental</radar-point
+          >
+          <radar-point data-type="technique"
+            >Réponde aux attentes du commanditaire</radar-point
+          >
+          <radar-point data-type="recherche"
+            >Respecte les contraintes réglementaires et légales (accessibilité, protection des données)</radar-point
+          >
+          <radar-point data-type="recherche"
+            >Respecte les usagers (éthique, pas de manipulation, inclusivité, honnêteté)</radar-point
+          >
+          <radar-point data-type="strategique"
+            >Reste dans le budget imparti</radar-point
+          >
+          <radar-point data-type="technique"
+            >Fonctionne et puisse techniquement être réalisé</radar-point
+          >
+          <radar-point data-type="artistique"
+            >Soit beau et visuellement cohérent</radar-point
+          >
+          <span>Designer</span>
+          <div>label</div>
+          <canvas></canvas>
+        </chart-radar>
+        <span style="flex: 1"></span>
+      </section>
+      <section
+        data-key="15"
+        data-footerless=""
+        id="result"
+        style="justify-content: center; align-items: center"
+      >
+        <h1>Votre vision du profil du designer :</h1>
+        <ul id="res" style="font-size: 1.5rem"></ul>
+        <div style="font-size: 1.5rem">
+          <span id="res-name">Nom</span>,
+          <span id="res-company">Entreprise</span>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <button onpointerdown="moveToPrevSlide(event)">Précédent</button>
+      <div><span id="page-number">1</span>/<span id="page-count"></span></div>
+      <button onpointerdown="moveToNextSlide(event)">Suivant</button>
+    </footer>
+
+    <svg style="position: absolute; width: 0; height: 0; pointer-events: none">
+      <!-- Note: We expand the canvas a bit more (-30%) so the blur doesn't get clipped -->
+      <filter
+        id="fuzzy-grain-blur"
+        x="-30%"
+        y="-30%"
+        width="160%"
+        height="160%"
+      >
+        <!-- 1. Generate noise -->
+        <feTurbulence
+          type="fractalNoise"
+          baseFrequency="0.5"
+          numOctaves="3"
+          result="noise"
+        />
+
+        <!-- 2. Displace edges -->
+        <feDisplacementMap
+          in="SourceGraphic"
+          in2="noise"
+          scale="12"
+          xChannelSelector="R"
+          yChannelSelector="G"
+          result="displaced"
+        />
+
+        <!-- 3. Add grain texture -->
+        <feColorMatrix
+          type="saturate"
+          values="0"
+          in="noise"
+          result="monoNoise"
+        />
+        <feBlend
+          in="displaced"
+          in2="monoNoise"
+          mode="multiply"
+          result="blended"
+        />
+        <feComposite
+          in="blended"
+          in2="displaced"
+          operator="in"
+          result="grainyElement"
+        />
+
+        <!-- 4. BLUR EVERYTHING AT THE END -->
+        <feGaussianBlur in="grainyElement" stdDeviation=".8" />
+      </filter>
+    </svg>
+
+    <svg width="0" height="0" style="position: absolute">
+      <defs>
+        <!-- Change filter id as needed -->
+        <filter id="outline" x="-30%" y="-30%" width="160%" height="160%">
+          <!-- 1. Thicken the original shape (radius = stroke thickness in px) -->
+          <feMorphology
+            in="SourceAlpha"
+            operator="dilate"
+            radius="1"
+            result="dilated"
+          />
+
+          <!-- 2. Define stroke color -->
+          <feFlood flood-color="#000000" result="stroke-color" />
+
+          <!-- 3. Clip the color to the thickened shape -->
+          <feComposite
+            in="stroke-color"
+            in2="dilated"
+            operator="in"
+            result="colored-stroke"
+          />
+
+          <!-- 4. Layer original text on top of the stroke -->
+          <feMerge>
+            <feMergeNode in="colored-stroke" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+    </svg>
+
+    <script>
+      const vertShader = `
+  precision mediump float;
+  attribute vec3 aPosition;
+  attribute vec2 aTexCoord;
+  varying vec2 vTexCoord;
+
+  void main() {
+    vTexCoord = aTexCoord;
+    vec4 positionVec4 = vec4(aPosition, 1.0);
+    positionVec4.xy = positionVec4.xy * 2.0 - 1.0;
+    gl_Position = positionVec4;
+  }
+`;
+
+      const fragShader = `
+  // 1. Force high precision on mobile if available
+  #ifdef GL_FRAGMENT_PRECISION_HIGH
+    precision highp float;
+  #else
+    precision mediump float;
+  #endif
+
+  varying vec2 vTexCoord;
+  uniform sampler2D u_texture;
+  uniform vec2 u_resolution;
+
+  // --- TWEAKABLE NOISE CONSTANTS ---
+  const float DISPLACEMENT_STRENGTH = 0.003;
+  const float DISPLACEMENT_SCALE = 120.0;
+  const float GRAIN_INTENSITY = 0.09;
+  const float GRAIN_SCALE = 1350.0;
+
+  // Mobile-safe 1D hash (no sin(), no massive numbers = no precision banding)
+  float hash(vec2 p) {
+    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+  }
+
+  // Mobile-safe 2D hash for organic displacement
+  vec2 hash2(vec2 p) {
+    vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.xx + p3.yz) * p3.zy);
+  }
+
+  void main() {
+    // Invert Y for WebGL texture alignment
+    vec2 uv = vec2(vTexCoord.x, 1.0 - vTexCoord.y);
+
+    // 1. Edge displacement
+    vec2 noiseVec = hash2(uv * DISPLACEMENT_SCALE);
+    vec2 displacedUv = clamp(uv + (noiseVec - 0.5) * DISPLACEMENT_STRENGTH, 0.0, 1.0);
+
+    // 2. Sample texture
+    vec4 col = texture2D(u_texture, displacedUv);
+
+    // Early exit if completely transparent (saves mobile battery & avoids artifacts)
+    if (col.a <= 0.001) {
+      gl_FragColor = vec4(0.0);
+      return;
+    }
+
+    // 3. Surface grain
+    float fineGrain = (hash(uv * GRAIN_SCALE) - 0.5) * GRAIN_INTENSITY;
+    col.rgb = clamp(col.rgb + (fineGrain * col.a), 0.0, 1.0);
+
+    // Ensure clean alpha output for Firefox compositor
+    gl_FragColor = col;
+  }
+`;
+
+      const Q_TYPES = {
+        artistique: "artistique",
+        technique: "technique",
+        recherche: "recherche",
+        strategique: "strategique",
+      };
+
+      const multiQuestions = {
+        first: [
+          {
+            label: "Affirmer sa propre singularité, même si elle ne correspond pas toujours aux attentes du client",
+            type: Q_TYPES.artistique,
+          },
+          {
+            label: "Expérimenter de nouveaux procédés et techniques graphiques pour explorer des possibilités créatives originales",
+            type: Q_TYPES.technique,
+          },
+          {
+            label: "Mettre sa sensibilité personnelle de côté pour répondre précisément à la demande du client",
+            type: Q_TYPES.strategique,
+          },
+          {
+            label: "S'appuyer sur les courants, les références et l'histoire du graphisme plutôt que chercher systématiquement à être original",
+            type: Q_TYPES.recherche,
+          },
+        ],
+        second: [
+          {
+            label: "Savoir dessiner et représenter ses idées visuellement",
+            type: Q_TYPES.technique,
+          },
+          {
+            label: "Avoir une sensibilité artistique et esthétique",
+            type: Q_TYPES.artistique,
+          },
+          {
+            label: "Explorer et expérimenter des approches nouvelles",
+            type: Q_TYPES.recherche,
+          },
+          {
+            label: "Apporter une nouvelle vision d'un produit",
+            type: Q_TYPES.strategique,
+          },
+        ],
+        third: [
+          {
+            label: "Comprenne finement les usagers et leurs besoins",
+            type: Q_TYPES.recherche,
+          },
+          {
+            label: "Perçoive les tendances actuelles et futures du marché",
+            type: Q_TYPES.strategique,
+          },
+          {
+            label: "Développe une culture artistique solide",
+            type: Q_TYPES.artistique,
+          },
+          {
+            label: "Maîtrise les nouveaux outils et technologies",
+            type: Q_TYPES.technique,
+          },
+        ],
+      };
+
+
+      const mainEl = document.querySelector("main");
+      const sectionEls = document.querySelectorAll("main section");
+      const footerEl = document.querySelector("footer");
+
+      document.querySelectorAll(".sortlist").forEach((sortlistEl) => {
+        Sortable.create(sortlistEl, {
+          animation: 150,
+          ghostClass: "sortable-ghost",
+        });
+      });
+
+      function noshadow(event) {
+        event.target.style.filter = "unset";
+      }
+
+      function shadow(event) {
+        event.target.style.filter = "drop-shadow(0px 3px 2px black)";
+      }
+
+      document.querySelectorAll(".multibarres").forEach((multibarresEl) => {
+        const ranges = multibarresEl.querySelector("#ranges");
+        const labels = multibarresEl.querySelector("#labels");
+        const parentHeight = ranges.getBoundingClientRect().height;
+
+        const segments = multiQuestions[multibarresEl.dataset.segments];
+
+        for (let i = 0; i < segments.length; i++) {
+          ranges.insertAdjacentHTML(
+            "beforeend",
+            `<sub-range data-key="${segments[i].label}" data-type="${
+              segments[i].type
+            }" data-value="${1 / segments.length}" style="height:${
+              100 / segments.length
+            }%"></sub-range>`
+          );
+
+          labels.insertAdjacentHTML(
+            "beforeend",
+            `<span style="height:${100 / segments.length}%">${
+              segments[i].label
+            }</span>`
+          );
+        }
+
+        for (let i = 0; i < segments.length - 1; i++) {
+          ranges.insertAdjacentHTML(
+            "beforeend",
+            `<svg class="handle" fill="transparent" stroke="black"></svg>`
+          );
+        }
+
+        const handles = multibarresEl.querySelectorAll(".handle");
+
+        for (const handle of handles) {
+          const hh = handle.getBoundingClientRect().height;
+          const hw = handle.getBoundingClientRect().width;
+
+          const centerX = hw - 24 - 52;
+          const centerY = hh / 2;
+
+          handle.innerHTML = `
+        <g
+          onpointerdown="dragHandle(event)"
+        >
+          <circle cx=${centerX} cy=${centerY} r=24 fill="white" class="ds"></circle>
+          <polygon
+            fill="black"
+            points="
+            ${centerX - 6.1},${centerY + 2}
+            ${centerX + 6.1},${centerY + 2}
+            ${centerX}      ,${centerY + 10.5 + 2}
+            "
+          />
+          <polygon
+            fill="black"
+            points="
+            ${centerX - 6.1},${centerY - 2}
+            ${centerX + 6.1},${centerY - 2}
+            ${centerX}      ,${centerY - 10.5 - 2}
+            "
+          />
+      </g>
+      <line x1=${centerX - 24} y1=${centerY} x2=0 y2=${centerY} />
+      <polygon
+        fill="black"
+        points="
+        0   ,${centerY - 6.1}
+        0   ,${centerY + 6.1}
+        10.5,${centerY}
+        "
+      />
+      `;
+        }
+
+        for (let i = 0; i < handles.length; i++) {
+          handles[i].style.transform = `translate(0,calc(-50% + ${
+            (parentHeight / segments.length) * (i + 1)
+          }px))`;
+        }
+      });
+
+      let draggedHandle = null;
+
+      function dragHandle(event) {
+        let svgBox = event.target.closest("svg");
+        if (!svgBox) return;
+
+        draggedHandle = svgBox;
+
+        // 1. CAPTURE the pointer so all moves redirect here, even outside the SVG
+        svgBox.setPointerCapture(event.pointerId);
+
+        svgBox.querySelector("circle").classList.remove("ds");
+      }
+
+      function dragHandleUpdate(event) {
+        if (!draggedHandle) return;
+
+        // 2. Instead of relying on event.target, use the draggedHandle directly!
+        const multibarresParent = draggedHandle.closest(".multibarres");
+        if (!multibarresParent) return;
+
+        const handles = multibarresParent.querySelectorAll(".handle");
+        const indexOfActiveHandle = Array.from(handles).indexOf(draggedHandle);
+
+        const rangeAbove =
+          multibarresParent.querySelectorAll("sub-range")[indexOfActiveHandle];
+        const rangeBelow =
+          multibarresParent.querySelectorAll("sub-range")[
+            indexOfActiveHandle + 1
+          ];
+
+        const ranges = multibarresParent.querySelector("#ranges");
+        const allPrev = Array.from(ranges.querySelectorAll("sub-range"))
+          .slice(0, indexOfActiveHandle)
+          .reduce((acc, el) => acc + parseFloat(el.dataset.value), 0);
+
+        const localY = event.clientY - ranges.getBoundingClientRect().top;
+        const parentHeight = ranges.getBoundingClientRect().height;
+        const newSize = localY / parentHeight - allPrev;
+        const sizeDiff = newSize - rangeAbove.dataset.value;
+
+        if (newSize <= 0.12 || sizeDiff > rangeBelow.dataset.value - 0.12) {
+          return;
+        }
+
+        draggedHandle.style.transform = `translate(0,calc(-50% + ${localY}px))`;
+
+        multibarresParent.querySelectorAll("#labels span")[
+          indexOfActiveHandle
+        ].style.height = newSize * 100 + "%";
+        rangeAbove.style.height = newSize * 100 + "%";
+        rangeAbove.setAttribute("data-value", newSize);
+
+        multibarresParent.querySelectorAll("#labels span")[
+          indexOfActiveHandle + 1
+        ].style.height = (rangeBelow.dataset.value - sizeDiff) * 100 + "%";
+        rangeBelow.style.height =
+          (rangeBelow.dataset.value - sizeDiff) * 100 + "%";
+        rangeBelow.setAttribute(
+          "data-value",
+          rangeBelow.dataset.value - sizeDiff
+        );
+      }
+
+      function dragHandleStop(event) {
+        if (!draggedHandle) return;
+
+        // 3. RELEASE the pointer capture
+        try {
+          draggedHandle.releasePointerCapture(event.pointerId);
+        } catch (_) {}
+
+        draggedHandle.querySelector("circle").classList.add("ds");
+        draggedHandle = null;
+      }
+
+      function moveToNextSlide() {
+        if (mainEl.dataset.currentSlide >= sectionEls.length - 1) {
+          return;
+        }
+
+        mainEl.dataset.currentSlide = parseInt(mainEl.dataset.currentSlide) + 1;
+
+        displaySection();
+        refreshPageCount();
+      }
+
+      function moveToPrevSlide() {
+        if (mainEl.dataset.currentSlide <= 0) {
+          return;
+        }
+
+        mainEl.dataset.currentSlide = parseInt(mainEl.dataset.currentSlide) - 1;
+
+        displaySection();
+        refreshPageCount();
+      }
+
+      function displaySection() {
+        for (const section of sectionEls) {
+          section.style.display = "none";
+        }
+
+        footerEl.hidden = true;
+
+        const currentSection = sectionEls[mainEl.dataset["currentSlide"]];
+        currentSection.style.display = "";
+
+        // Instantly paint the chart when slide becomes visible
+        const radar = currentSection.querySelector("chart-radar");
+        if (radar && radar._redrawChart) {
+          radar._redrawChart();
+        }
+
+        footerEl.style.display =
+          currentSection.dataset.footerless == "" ? "none" : "";
+      }
+
+      function refreshPageCount() {
+        document.querySelector("#page-number").textContent =
+          parseInt(mainEl.dataset.currentSlide) + 1;
+      }
+
+      const chartRadarEls = document.querySelectorAll("chart-radar");
+      let completedSetups = 0;
+
+      chartRadarEls.forEach((radarEl) => {
+        const labelEl = radarEl.querySelector("div");
+        labelEl.style.display = "none";
+
+        const points = radarEl.querySelectorAll("radar-point");
+        points.forEach((p) => {
+          p.dataset.x = 0;
+          p.dataset.y = 0;
+        });
+
+        new p5((p) => {
+          const POINT_DIAMETER = 40;
+          let draggedPoint = null;
+          let pg = null; // 2D offscreen buffer
+          let grainShader = null;
+          let canvasEl = null;
+
+          let lastX = 0;
+          let lastY = 0;
+
+          p.setup = function () {
+            const dimensions = radarEl.getBoundingClientRect();
+            const existingCanvas = radarEl.querySelector("canvas");
+
+            // 1. Run main canvas in WebGL mode attached to the existing canvas
+            canvasEl = p.createCanvas(
+              dimensions.width,
+              dimensions.height,
+              p.WEBGL,
+              existingCanvas
+            ).elt;
+
+            // 2. Offscreen 2D buffer (where all crisp geometry is drawn)
+            pg = p.createGraphics(dimensions.width, dimensions.height);
+
+            // 3. Compile GPU shader
+            grainShader = p.createShader(vertShader, fragShader);
+
+            // 4. Render on-demand only (0 FPS when idle)
+            p.noLoop();
+
+            // Expose redraw to the DOM element so section switching paints immediately
+            radarEl._redrawChart = () => p.redraw();
+
+            // Setup initial points layout
+            for (let i = 0; i < points.length; i++) {
+              const angle = (i / (points.length - 1)) * Math.PI;
+              points[i].dataset.x =
+                pg.width / 2 + pg.width * 0.25 * Math.cos(angle);
+              points[i].dataset.y =
+                pg.width / 2 + pg.width * 0.25 * -Math.sin(angle);
+            }
+
+            // --- POINTER EVENTS ---
+            canvasEl.addEventListener("pointerdown", (event) => {
+              const rect = canvasEl.getBoundingClientRect();
+              const touchX = event.clientX - rect.left;
+              const touchY = event.clientY - rect.top;
+
+              for (let i = 0; i < points.length; i++) {
+                const px = parseFloat(points[i].dataset.x);
+                const py = parseFloat(points[i].dataset.y);
+
+                if (p.dist(px, py, touchX, touchY) < POINT_DIAMETER * 0.8) {
+                  draggedPoint = points[i];
+                  labelEl.textContent = draggedPoint.textContent;
+                  labelEl.style.display = "";
+
+                  lastX = event.clientX;
+                  lastY = event.clientY;
+
+                  canvasEl.setPointerCapture(event.pointerId);
+                  p.redraw();
+                  return;
+                }
+              }
+            });
+
+            canvasEl.addEventListener("pointermove", (event) => {
+              if (!draggedPoint) return;
+
+              const deltaX = event.clientX - lastX;
+              const deltaY = event.clientY - lastY;
+
+              lastX = event.clientX;
+              lastY = event.clientY;
+
+              const nextPosition = {
+                x: parseFloat(draggedPoint.dataset.x) + deltaX,
+                y: parseFloat(draggedPoint.dataset.y) + deltaY,
+              };
+
+              if (
+                p.dist(
+                  nextPosition.x,
+                  nextPosition.y,
+                  pg.width * 0.5,
+                  pg.height * 0.5
+                ) >=
+                pg.width * 0.5
+              ) {
+                return;
+              }
+
+              draggedPoint.dataset.x = nextPosition.x;
+              draggedPoint.dataset.y = nextPosition.y;
+
+              p.redraw();
+            });
+
+            const stopDragging = (event) => {
+              if (draggedPoint) {
+                try {
+                  canvasEl.releasePointerCapture(event.pointerId);
+                } catch (_) {}
+                draggedPoint = null;
+                labelEl.style.display = "none";
+                p.redraw();
+              }
+            };
+
+            canvasEl.addEventListener("pointerup", stopDragging);
+            canvasEl.addEventListener("pointercancel", stopDragging);
+
+            completedSetups += 1;
+            if (completedSetups === chartRadarEls.length) {
+              initPage();
+            }
+          };
+
+          p.draw = function () {
+            if (!pg) return;
+
+            // --- STEP A: DRAW 2D ELEMENTS TO OFFSCREEN BUFFER ---
+            p.clear();
+            pg.clear();
+
+            // Calculate half the width
+            const radius = pg.width / 2;
+
+            // Set the gradient to end at 'radius' (pg.width / 2) instead of hardcoded 200
+            let myGradient = pg.drawingContext.createRadialGradient(
+              radius,
+              radius,
+              0, // Start at center (0)
+              radius,
+              radius,
+              radius // End exactly at half the canvas width
+            );
+            myGradient.addColorStop(0, "#D532F2FF");
+            myGradient.addColorStop(1, "#D532F200");
+
+            pg.drawingContext.fillStyle = myGradient;
+            pg.noStroke();
+            pg.circle(radius, radius, pg.width); // Circle diameter = pg.width (radius = pg.width / 2)
+
+            pg.drawingContext.fillStyle = myGradient;
+            pg.noStroke();
+            pg.circle(pg.width / 2, pg.height / 2, pg.width);
+
+            // Concentric guide rings
+            pg.push();
+            pg.fill("transparent");
+            pg.stroke("white");
+            pg.strokeWeight(2);
+            pg.circle(pg.width / 2, pg.height / 2, pg.width * 0.25);
+            pg.circle(pg.width / 2, pg.height / 2, pg.width * 0.5);
+            pg.circle(pg.width / 2, pg.height / 2, pg.width * 0.75);
+            pg.pop();
+
+            // Central purple hub
+            pg.push();
+            pg.fill("#570066");
+            pg.stroke("white");
+            pg.strokeWeight(5);
+            pg.circle(pg.width / 2, pg.height / 2, 50);
+            pg.pop();
+
+            // Interactive points
+            pg.push();
+            for (const point of points) {
+              pg.noStroke();
+              pg.fill("white");
+              pg.circle(point.dataset.x, point.dataset.y, POINT_DIAMETER);
+
+              if (point !== draggedPoint) {
+                pg.fill("#CECECE");
+              } else {
+                pg.fill("black");
+              }
+              pg.circle(point.dataset.x, point.dataset.y, 15);
+
+              point.dataset.value =
+                (p.dist(
+                  point.dataset.x,
+                  point.dataset.y,
+                  pg.width / 2,
+                  pg.height / 2
+                ) /
+                  pg.width) *
+                2;
+            }
+            pg.pop();
+
+            // --- STEP B: PASS TO GPU SHADER (RUNS IN ~0.3ms) ---
+            p.shader(grainShader);
+            grainShader.setUniform("u_texture", pg);
+            grainShader.setUniform("u_resolution", [p.width, p.height]);
+
+            // Draw full-canvas rect covering the WebGL viewport
+            p.noStroke();
+            p.rect(-p.width / 2, -p.height / 2, p.width, p.height);
+          };
+        }, radarEl);
+      });
+
+      function initPage() {
+        displaySection();
+        document.querySelector("#page-count").textContent = sectionEls.length;
+      }
+
+      function collaboration(hasCollaborated) {
+        sessionStorage.setItem("collaboration", hasCollaborated);
+        moveToNextSlide();
+      }
+
+      let employs = [];
+
+      function toggleEmploy(event) {
+        event.target.classList.toggle("primary");
+
+        if (event.target.classList.contains("primary")) {
+          employs.push(event.target.innerText);
+        } else {
+          employs = employs.filter((e) => e != event.target.innerText);
+        }
+      }
+
+      let info = {};
+
+      function collectAllInfo() {
+        info = {
+          consent: document.querySelector("#consent").checked,
+          collaboration: sessionStorage.getItem("collaboration"),
+          company: document.querySelector("#company").value,
+          fullname: document.querySelector("#fullname").value,
+          employs,
+          answers: {},
+        };
+
+        // tout sauvegarder sans traiter et faire le traitement a part
+        const questionEls = document.querySelectorAll(
+          ".sortlist,chart-radar,.multibarres"
+        );
+
+        for (const questionEl of questionEls) {
+          info.answers[questionEl.closest("section").dataset.key] =
+            questionEl.outerHTML;
+        }
+
+        let total = 0;
+        let artistique = 0;
+        let technique = 0;
+        let recherche = 0;
+        let strategique = 0;
+
+        for (const list of document.querySelectorAll(".sortlist")) {
+          let subArtistique = 0;
+          let subTechnique = 0;
+          let subRecherche = 0;
+          let subStrategique = 0;
+
+          const items = Array.from(list.querySelectorAll("li"));
+
+          for (let i = 0; i < items.length; i++) {
+            switch (items[items.length - 1 - i].dataset.type) {
+              case Q_TYPES.artistique:
+                subArtistique += i;
+                break;
+              case Q_TYPES.recherche:
+                subRecherche += i;
+                break;
+              case Q_TYPES.strategique:
+                subStrategique += i;
+                break;
+              case Q_TYPES.technique:
+                subTechnique += i;
+                break;
+              default:
+                console.error("hu ohhh...");
+            }
+          }
+
+          const subTotal =
+            subArtistique + subTechnique + subRecherche + subStrategique;
+
+          artistique += subArtistique / subTotal;
+          technique += subTechnique / subTotal;
+          recherche += subRecherche / subTotal;
+          strategique += subStrategique / subTotal;
+
+          total += 1;
+        }
+
+        // faire les radar avec un pool de 0 a 1 pour chaque point
+        for (const radar of document.querySelectorAll("chart-radar")) {
+          let subArtistique = 0;
+          let subTechnique = 0;
+          let subRecherche = 0;
+          let subStrategique = 0;
+
+          radar.querySelectorAll("radar-point").forEach((point) => {
+            switch (point.dataset.type) {
+              case Q_TYPES.artistique:
+                subArtistique += 1 - parseFloat(point.dataset.value);
+                break;
+              case Q_TYPES.recherche:
+                subRecherche += 1 - parseFloat(point.dataset.value);
+                break;
+              case Q_TYPES.strategique:
+                subStrategique += 1 - parseFloat(point.dataset.value);
+                break;
+              case Q_TYPES.technique:
+                subTechnique += 1 - parseFloat(point.dataset.value);
+                break;
+              default:
+                console.error("hu ohhh 2 ...");
+            }
+          });
+
+          const subTotal =
+            subArtistique + subTechnique + subRecherche + subStrategique;
+
+          artistique += subArtistique / subTotal;
+          technique += subTechnique / subTotal;
+          recherche += subRecherche / subTotal;
+          strategique += subStrategique / subTotal;
+
+          total += 1;
+        }
+
+        // faire les multibarres
+        for (const multibarreEl of document.querySelectorAll(".multibarres")) {
+          for (const subRange of multibarreEl.querySelectorAll("sub-range")) {
+            switch (subRange.dataset.type) {
+              case Q_TYPES.artistique:
+                artistique += parseFloat(subRange.dataset.value);
+                break;
+              case Q_TYPES.recherche:
+                recherche += parseFloat(subRange.dataset.value);
+                break;
+              case Q_TYPES.strategique:
+                strategique += parseFloat(subRange.dataset.value);
+                break;
+              case Q_TYPES.technique:
+                technique += parseFloat(subRange.dataset.value);
+                break;
+              default:
+                console.error("hu ohhh 3 ...");
+            }
+          }
+
+          total += 1;
+        }
+
+        info.artistique = artistique / total;
+        info.technique = technique / total;
+        info.recherche = recherche / total;
+        info.strategique = strategique / total;
+
+        // TODO post to somewhere
+        info.date = Date.now();
+
+        fetch("https://designostic.kothar.tools/data", {
+          method: "POST",
+          headers: {
+            // Essential: Tells the server to parse the body as JSON
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(info),
+        }).then((res) => {
+          console.log(res);
+        });
+
+        const resultView = document.querySelector("#result");
+        resultView.querySelector("#res-name").textContent = info.fullname;
+        resultView.querySelector("#res-company").textContent = info.company;
+        resultView.querySelector("#res").innerHTML = [
+          { label: "artistique", value: info.artistique },
+          { label: "technique", value: info.technique },
+          { label: "stratégique", value: info.strategique },
+          { label: "recherche", value: info.recherche },
+        ]
+          .sort((a, b) => b.value - a.value)
+          .map(
+            (pole) =>
+              `<div>${pole.label} : ${(pole.value * 100).toFixed(1)} %</div>`
+          )
+          .join("");
+
+        return info;
+      }
+
+      // 1. Select the target element
+      const target = document.querySelector("#result");
+
+      // 2. Define the observer
+      const observer = new IntersectionObserver(
+        (entries, observer) => {
+          entries.forEach((entry) => {
+            // Check if the element has entered the viewport
+            if (entry.isIntersecting) {
+              collectAllInfo();
+
+              // (Optional) Stop watching if you only want it to trigger once
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        {
+          threshold: 0.01, // 0.5 means trigger when 50% of the element is visible (0.0 to 1.0)
+        }
+      );
+
+      // 3. Start observing
+      observer.observe(target);
+
+      function shuffleInner(element) {
+        if (!element) return;
+
+        // 1. Get direct children only
+        const children = Array.from(element.children);
+
+        // 2. Fisher-Yates shuffle
+        for (let i = children.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [children[i], children[j]] = [children[j], children[i]];
+        }
+
+        // 3. Re-append in the new order
+        element.append(...children);
+      }
+
+      document
+        .querySelectorAll(".sortlist, chart-radar")
+        .forEach((el) => shuffleInner(el));
+    </script>
+  </body>
+</html>
