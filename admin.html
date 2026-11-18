@@ -156,6 +156,7 @@
               <th>Date</th>
               <th>Participant</th>
               <th>Société</th>
+              <th>Secteur</th>
               <th>Consent.</th>
               <th>Emploie</th>
               <th class="num">Artistique</th>
@@ -203,6 +204,7 @@
         const filtered = dataset.filter((item) => {
           const name = (item.fullname || "").toLowerCase();
           const comp = (item.company || "").toLowerCase();
+          const sect = (item.secteur || "").toLowerCase();
           return name.includes(query) || comp.includes(query);
         });
 
@@ -232,6 +234,7 @@
                 <td>${formatDate(row.date)}</td>
                 <td>${row.fullname || "-"}</td>
                 <td>${row.company || "-"}</td>
+                <td>${row.secteur || "-"}</td>
                 <td>${collab}</td>
                 <td>${employs}</td>
                 <td class="num">${formatPercent(row.artistique)}</td>
