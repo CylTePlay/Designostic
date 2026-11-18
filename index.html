@@ -375,9 +375,9 @@
             style="display: flex; flex-direction: column; align-items: center"
           >
             <h2 style="margin-bottom: 0.5rem">
-              <label for="secteur">Secteur d'activité :</label>
+              <label for="company">Secteur d'activité :</label>
             </h2>
-            <select name="secteur" id="secteur-select">
+            <select name="secteur" id="secteur">
             <option value="">...</option>
             <option value="numerique">Numérique</option>
             <option value="industrie">Industrie</option>
@@ -729,7 +729,7 @@
         <ul id="res" style="font-size: 1.5rem"></ul>
         <div style="font-size: 1.5rem">
           <span id="res-name">Nom</span>,
-          <span id="res-secteur">Secteur</span>
+
           <span id="res-company">Entreprise</span>
           
         </div>
@@ -1579,7 +1579,6 @@
         const resultView = document.querySelector("#result");
         resultView.querySelector("#res-name").textContent = info.fullname;
         resultView.querySelector("#res-company").textContent = info.company;
-        resultView.querySelector("#res-secteur").textContent = info.secteur;
         resultView.querySelector("#res").innerHTML = [
           { label: "artistique", value: info.artistique },
           { label: "technique", value: info.technique },
