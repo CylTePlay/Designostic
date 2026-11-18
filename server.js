@@ -4,7 +4,7 @@ const path = require("path");
 const cors = require("cors");
 
 const app = express();
-const PORT = 3008;
+const PORT = 5500;
 const FILE_PATH = path.join(__dirname, "data.json");
 
 // Middleware: Parse incoming JSON request bodies
