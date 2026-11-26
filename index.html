@@ -4,1685 +4,313 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Designostic</title>
-    <script src="sortable.1.15.7.min.js"></script>
-    <script src="p5.min.js"></script>
     <style>
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: system-ui;
-      }
-
-      body {
-        margin: 0;
-
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-
-        height: 100svh;
-      }
-
-      main {
-        flex: 1;
-      }
-
-      section {
-        width: 100%;
-        max-width: 576px;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        padding: 1rem;
-      }
-
-      h1 {
-        text-align: center;
-        text-wrap: balance;
-        line-height: 1.1;
-        margin: 0;
-        font-style: italic;
-      }
-
-      h2 {
-        text-align: center;
-        font-weight: normal;
-        margin: 0;
-      }
-
-      sub-range {
-        background: linear-gradient(326.54deg, #ea73ff 50.47%, #5f0070 103.99%);
-        height: 100px;
-        width: 30px;
-        display: block;
-        filter: url("#fuzzy-grain-blur");
-        border-radius: 99rem;
-      }
-
-      .ds {
-        filter: drop-shadow(0px 3px 2px black);
-      }
-
-      svg {
-        height: 60px;
-      }
-
-      .multibarres {
-        display: flex;
-        position: relative;
-        /* flex: 1; */
-
-        .handle {
-          touch-action: none;
-        }
-      }
-
-      #ranges {
-        display: flex;
-        flex-direction: column;
-
-        height: 500px;
-
-        svg {
-          position: absolute;
-          user-select: none;
-          width: calc(100% - 24px);
-        }
-      }
-
-      #labels {
-        display: flex;
-        flex-direction: column;
-        align-self: stretch;
-        flex: 1;
-
-        span {
-          align-content: center;
-          padding-left: 2rem;
-        }
-      }
-
-      ul {
-        list-style-type: none;
-        padding-left: 0;
-
-        li {
-          width: 100%;
-          background-color: #5f0070;
-          color: white;
-          padding: 1rem;
-          text-align: center;
-
-          user-select: none;
-
-          margin-bottom: 1rem;
-          &:last-child {
-            margin-bottom: 0;
-          }
-        }
-      }
-
-      .sortable-ghost {
-        background-color: #e44dff;
-      }
-
-      footer {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 2rem;
-        padding: 2rem;
-        font-style: italic;
-
-        button {
-          border-radius: 99999px;
-          background-color: #e44dff;
-          color: white;
-          padding: 0.5rem 2rem;
-          border: none;
-          font-style: inherit;
-        }
-
-        div {
-          background-color: #ccb799;
-          border-radius: 99999px;
-          color: white;
-          padding: 0.5rem 1rem;
-        }
-      }
-
-      canvas {
-        width: 100%;
-        aspect-ratio: 1/1;
-      }
-
-      chart-radar {
-        radar-point {
-          display: none;
-        }
-
-        display: grid;
-        place-items: center;
-        touch-action: none;
-
-        span {
-          z-index: 1;
-          color: white;
-          filter: url(#outline);
-          pointer-events: none;
-        }
-
-        div {
-          z-index: 1;
-          place-self: end center;
-          border-radius: 999999px;
-          padding: 0.25rem 1rem;
-          background-color: white;
-          border: 1px solid grey;
-        }
-
-        canvas {
-          touch-action: none;
-        }
-
-        > * {
-          grid-area: 1/1;
-        }
-      }
-
-      .button {
-        border-radius: 999999px;
-        padding: 0.5rem 4rem;
-        background-color: transparent;
-        border: solid 2px grey;
-        font-style: italic;
-      }
-
-      .primary {
-        border: none;
-        background-color: #e44dff;
-        color: white;
-        font-style: italic;
-      }
-
-      .custom-checkbox {
-        /* 1. Remove native OS/browser styling */
-        appearance: none;
-        -webkit-appearance: none;
-
-        /* 2. Exact 24x24 dimensions */
-        width: 24px;
-        height: 24px;
-        min-width: 24px; /* Prevents shrinking in flex containers */
-        margin: 0;
-
-        /* 3. Transparent background & border */
-        background-color: transparent;
-        border: 2px solid #000;
-
-        cursor: pointer;
-        vertical-align: middle;
-        position: relative;
-        transition: border-color 0.15s ease;
-      }
-
-      /* 4. Checked state: Black SVG checkmark on a transparent background */
-      .custom-checkbox:checked {
-        background-color: transparent;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: 16px 16px;
-      }
-
-      /* 5. Accessibility: preserve focus ring for keyboard users */
-      .custom-checkbox:focus-visible {
-        outline: 2px solid #000;
-        outline-offset: 2px;
-      }
-
-      /* Optional wrapper helper to align the text with the checkbox */
-      .checkbox-container {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-      }
-
-      .big-input {
-        border: 1px solid black;
-        border-radius: 999999px;
-        font-size: 1.5rem;
-        padding: 0.25rem 0;
-        font-style: italic;
-        width: 237px;
-      }
-
-      .small {
-        font-style: italic;
-        font-size: 14px;
-        color: #404040;
-      }
+      * { box-sizing: border-box; }
+      body { margin: 0; height: 100svh; display: flex; flex-direction: column; align-items: center; font-family: system-ui, sans-serif; background: linear-gradient(#e6d5b8, #fff 240px) no-repeat; }
+      main { flex: 1; width: 100%; max-width: 576px; overflow-y: auto; }
+      section { min-height: 100%; display: flex; flex-direction: column; gap: 1.25rem; padding: 2rem 1.25rem 1rem; }
+      section[hidden], footer[hidden] { display: none; }
+      h1 { margin: 0; text-align: center; text-wrap: balance; line-height: 1.15; font-size: 1.5rem; font-style: italic; }
+      h2 { margin: 0; text-align: center; color: #777; font-size: 1.25rem; font-style: italic; }
+      .hint { margin: 0; text-align: center; font-size: 14px; font-style: italic; color: #777; }
+      .field { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+      input[type="text"], select { width: 100%; max-width: 300px; border: 1px solid #a01cc0; border-radius: 99px; background: #fff; padding: 0.6rem 1rem; font-family: inherit; font-size: 1rem; font-style: italic; text-align: center; }
+      .btn { border: 0; border-radius: 99px; background: #e44dff; color: #fff; padding: 0.5rem 2rem; font-family: inherit; font-size: 1rem; font-style: italic; cursor: pointer; }
+      .btn:disabled { opacity: 0.4; }
+      .ghost { background: #fff; color: #e44dff; border: 1px solid #e44dff; }
+      .opt { display: flex; align-items: center; gap: 0.75rem; width: 100%; margin-bottom: 0.75rem; padding: 0.8rem 1rem; border: 0; border-radius: 28px; background: #fdf3dc; color: #000; text-align: left; font: 600 0.95rem system-ui, sans-serif; cursor: pointer; }
+      .opt.on { background: linear-gradient(326deg, #a21cbf, #c04ddb); color: #fff; }
+      .dot { flex: none; width: 28px; height: 28px; border-radius: 50%; border: 3px solid #c04ddb; background: #fff; }
+      .on .dot { background: linear-gradient(#f0a0ff, #d05be8); }
+      .arrows { display: flex; flex-direction: column; }
+      .arrows button { all: unset; cursor: pointer; line-height: 1; padding: 2px 8px; }
+      .sl { display: block; margin-bottom: 1.4rem; font-weight: 600; font-size: 0.95rem; }
+      .gauge { position: relative; display: block; height: 36px; margin-top: 0.5rem; }
+      .track, .fill { position: absolute; top: 50%; height: 24px; margin-top: -12px; border-radius: 99px; filter: url(#grain); }
+      .track { left: 0; right: 0; background: #fdf3dc; }
+      .fill { left: 0; width: calc(18px + (100% - 36px) * var(--v)); background: linear-gradient(90deg, #e87cff 40%, #9a39b2); }
+      .thumb { position: absolute; top: 0; left: calc((100% - 36px) * var(--v)); width: 36px; height: 36px; border: 4px solid transparent; border-radius: 50%; background: linear-gradient(#fff, #fff) padding-box, linear-gradient(160deg, #9a39b2, #e870ff) border-box; pointer-events: none; }
+      .gauge input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; appearance: none; -webkit-appearance: none; background: transparent; touch-action: pan-y; }
+      .gauge input::-webkit-slider-thumb { -webkit-appearance: none; width: 36px; height: 36px; }
+      .gauge input::-moz-range-thumb { width: 36px; height: 36px; border: 0; }
+      .gauge:has(input:focus-visible) .thumb { outline: 3px solid #6b00a8; outline-offset: 3px; }
+      
+      footer { display: flex; justify-content: space-between; width: 100%; max-width: 576px; padding: 1rem 1.25rem 1.5rem; }
+    
+      body { height: 100vh; height: 100dvh; }
+      section { padding-top: max(1.5rem, env(safe-area-inset-top)); }
+      h1 { font-size: clamp(1.2rem, 5.2vw, 1.6rem); }
+      h1:focus { outline: none; }
+      footer { padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); }
+      .btn { background: #b71fd6; min-height: 44px; }
+      .ghost { background: #fff; color: #b71fd6; border: 1px solid #b71fd6; }
+      .hint { color: #666; }
+      :focus-visible { outline: 3px solid #6b00a8; outline-offset: 2px; }
+      .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+      .opt { min-height: 48px; transition: transform 0.15s; }
+      .arrows button { font-size: 1.1rem; padding: 4px 12px; }
+      .rank .opt { touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; }
+      .opt.drag { transition: none; position: relative; z-index: 2; cursor: grabbing; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); }
+      @media (prefers-reduced-motion: reduce) { .opt { transition: none; } }
     </style>
   </head>
   <body>
-    <main data-current-slide="0">
-      <section
-        data-key="0"
-        data-footerless
-        style="justify-content: space-evenly"
-      >
-        <span></span>
-        <div>
-          <h1>Designostic</h1>
-          <h2>
-            La plateforme de positionnement design pour les partenaires de
-            l'EDNA
-          </h2>
-        </div>
-        <div>
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 1rem;
-              padding: 1rem 0;
-            "
-          >
-            <input
-              type="checkbox"
-              class="custom-checkbox"
-              name="consent"
-              id="consent"
-            />
-            <label for="consent" class="small"
-              >Je consens à ce que mes données soient utilisées par le personnel
-              de l'EDNA à des fins de recherche</label
-            >
-          </div>
-          <div>
-            <button
-              id="startBtn"
-              onpointerdown="moveToNextSlide(event)"
-              style="
-                border-radius: 999999px;
-                color: white;
-                background-color: #e44dff;
-                border: none;
-                padding: 0.5rem 2rem;
-                text-align: center;
-                font-size: 1.5rem;
-                width: 100%;
-                font-style: italic;
-              "
-            >
-              Commencer
-            </button>
-          </div>
-        </div>
-      </section>
-      <section
-        data-key="1"
-        data-footerless
-        style="justify-content: center; align-items: center"
-      >
-        <h1 style="padding-bottom: 2rem">
-          Avez-vous déjà collaboré avec des designers dans le cadre d'un projet,
-          stage ou apprentissage ?
-        </h1>
-        <div
-          style="
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-          "
-        >
-          <button onpointerdown="collaboration(true)" class="button big-input">
-            Oui
-          </button>
-          <button onpointerdown="collaboration(false)" class="button big-input">
-            Non
-          </button>
-        </div>
-      </section>
-      <section
-        data-key="2"
-        data-footerless=""
-        style="justify-content: space-between"
-      >
-        <span></span>
-        <div style="display: flex; flex-direction: column; gap: 2rem">
-          <h1>Qui êtes-vous ?</h1>
-          <div
-            style="display: flex; flex-direction: column; align-items: center"
-          >
-            <h2 style="margin-bottom: 0.5rem">
-              <label for="company">Nom de votre société :</label>
-            </h2>
-            <input
-              type="text"
-              name="company"
-              id="company"
-              placeholder="..."
-              class="big-input"
-              style="text-align: center"
-            />
-          </div>
-          <div
-            style="display: flex; flex-direction: column; align-items: center"
-          >
-            <h2 style="margin-bottom: 0.5rem">
-              <label for="company">Secteur d'activité :</label>
-            </h2>
-            <select name="secteur" id="secteur">
-            <option value="">...</option>
-            <option value="administration">Administration/Fonction publique</option>
-            <option value="studio">Studio de Design/Indépendant</option>
-            <option value="agroalimentaire">Agroalimentaire</option>
-            <option value="armement">Armement/Défense</option>
-            <option value="artisanat">Artisanat d'art</option>
-            <option value="associations">Associations</option>
-            <option value="automobile">Automobile</option>
-            <option value="banques">Banques/Assurances/Mutuelles</option>
-            <option value="commerce">Commerce/Distribution/Equipement</option>
-            <option value="collectivites">Collectivités locales & territoriales</option>
-            <option value="communication">Communication/Marketing/Publicité</option>
-            <option value="conseil">Conseil/Audit/Etude</option>
-            <option value="construction">Construction/Bâtiment/Travaux Publics</option>
-            <option value="cosmetique">Cosmétique</option>
-            <option value="culture">Culture/Sports/Loisirs</option>
-            <option value="energie">Energie</option>
-            <option value="enseignement">Enseignement/Formation</option>
-            <option value="environnement">Environnement</option>
-            <option value="gestion">Gestion/Administration des entreprises</option>
-            <option value="hotellerie">Hôtellerie/Restauration/Tourisme</option>
-            <option value="immobilier">Immobilier</option>
-            <option value="informatique">Informatique/Télécommunications</option>
-            <option value="institut de recherche">Instituts de recherche</option>
-            <option value="luxe">Luxe</option>
-            <option value="medias">Medias/Presse/Edition</option>
-            <option value="numerique">Numérique</option>
-            <option value="professionsjuridiques">Professions juridiques</option>
-            <option value="vente">Vente/E-commerce/Internet</option>
-            <option value="sante">Santé/Action sociale</option>
-            <option value="textile">Textile/Mode</option>
-            <option value="transport">Transports/Logistique</option>
-            </select>
-          </div>
-          <div
-            style="display: flex; flex-direction: column; align-items: center"
-          >
-            <h2 style="margin-bottom: 0.5rem">
-              <label for="fullname">Vos nom et prénom :</label>
-            </h2>
-            <input
-              type="text"
-              name="fullname"
-              id="fullname"
-              placeholder="..."
-              class="big-input"
-              style="text-align: center"
-            />
-          </div>
-        </div>
-        <button
-          onpointerdown="moveToNextSlide()"
-          style="margin-bottom: 2rem"
-          class="button primary"
-        >
-          Valider ma réponse
-        </button>
-      </section>
-      <section data-key="3" style="justify-content: space-between">
-        <span></span>
+    <main>
+      <section style="justify-content: space-between">
+        <div></div>
         <div style="text-align: center">
-          <h1>Employez-vous des designers ?</h1>
-          <p class="small" style="text-align: center">
-            Cochez le ou les éléments puis validez votre réponse
-          </p>
+          <h1 style="font-size: 2rem">Designostic</h1>
+          <p style="font-size: 1.2rem">La plateforme de positionnement design pour les partenaires de l'EDNA</p>
         </div>
-
-        <ul style="display: flex; flex-direction: column; gap: 1rem">
-          <button
-            class="button"
-            style="height: 49px; font-size: 1.5rem"
-            onpointerdown="toggleEmploy(event)"
-          >
-            salarié
-          </button>
-          <button
-            class="button"
-            style="height: 49px; font-size: 1.5rem"
-            onpointerdown="toggleEmploy(event)"
-          >
-            freelance
-          </button>
-          <button
-            class="button"
-            style="height: 49px; font-size: 1.5rem"
-            onpointerdown="toggleEmploy(event)"
-          >
-            stagiaire
-          </button>
-          <button
-            class="button"
-            style="height: 49px; font-size: 1.5rem"
-            onpointerdown="toggleEmploy(event)"
-          >
-            alternant
-          </button>
-          <button
-            class="button"
-            style="height: 49px; font-size: 1rem"
-            onpointerdown="toggleEmploy(event)"
-          >
-            je n'emploie pas de designer
-          </button>
-        </ul>
-        <span></span>
-        <div
-            style="display: flex; flex-direction: column; align-items: center"
-          >
-            <h2 style="margin-bottom: 0.5rem">
-              <label for="company">Si oui, quel profil de designer ?</label>
-            </h2>
-            <select name="secteur" id="secteur">
-            <option value="">...</option>
-            <option value="ui/ux">UI/UX Design & Product Design</option>
-            <option value="design produit">Design produit</option>
-            <option value="design transport">Design transport</option>
-            <option value="design graphique">Design graphique</option>
-            <option value="motion design">Motion Design</option>
-            <option value="archi">Architecture d'intérieure</option>
-            <option value="scenographie">Scénographie</option>
-            </select>
-          </div>
-        <span></span>
-      </section>
-      <section data-key="4">
-        <h1>Pour vous, un·e designer doit :</h1>
-        <p class="small" style="text-align: center">
-          Déplacez les curseurs pour accorder plus ou moins d'importance à
-          chaque réponse
-        </p>
-        <span style="flex: 1"></span>
-        <div
-          class="multibarres"
-          onpointermove="dragHandleUpdate(event)"
-          onpointercancel="dragHandleStop(event)"
-          onpointerup="dragHandleStop(event)"
-          data-segments="first"
-        >
-          <div id="ranges"></div>
-          <div id="labels"></div>
+        <div>
+          <label style="display: flex; gap: 1rem; align-items: center; font-size: 14px; font-style: italic; margin-bottom: 1rem">
+            <input type="checkbox" id="consent" style="width: 24px; height: 24px; flex: none" />
+            Je consens à ce que mes données soient utilisées par le personnel de l'EDNA à des fins de recherche
+          </label>
+          <button class="btn" id="start" style="width: 100%; font-size: 1.5rem">Commencer</button>
         </div>
-        <span style="flex: 1"></span>
       </section>
-      <section data-key="5">
-        <h1>Selon vous, un·e designer créatif·ve, c'est surtout :</h1>
-        <p class="small" style="text-align: center">
-          Déplacez les curseurs pour accorder plus ou moins d'importance à
-          chaque réponse
-        </p>
-        <span style="flex: 1"></span>
-        <div
-          class="multibarres"
-          onpointermove="dragHandleUpdate(event)"
-          onpointercancel="dragHandleStop(event)"
-          onpointerup="dragHandleStop(event)"
-          data-segments="second"
-        >
-          <div id="ranges"></div>
-          <div id="labels"></div>
-        </div>
-        <span style="flex: 1"></span>
+      <section>
+        <h1 style="margin-top: 3rem">Qui êtes-vous ?</h1>
+        <div class="field"><label for="company">Nom de votre société :</label><input type="text" id="company" /></div>
+        <div class="field"><label for="secteur">Secteur d'activité :</label><select id="secteur"></select></div>
       </section>
-      <section data-key="6">
-        <h1>Quels outils le.la designer doit-il.elle savoir le plus utiliser dans sa pratique ?</h1>
-        <p class="small" style="text-align: center">
-          Classez chaque élément par ordre d'importance
-        </p>
-        <ul class="sortlist">
-          <li data-type="artistique" draggable="false">
-            Outils d'expression visuelle (Dessin, Suite Adobe, CAO…).
-          </li>
-          <li data-type="technique" draggable="false">
-            Outils de conception / fabrication.(Logiciel 3D, Maquette, Atelier Fab).
-          </li>
-          <li data-type="technique" draggable="false">
-            Outils de gestion projet (Suite Office, Trello, Notion, Canva, Ateliers collaboratifs…)
-          </li>
-          <li data-type="strategique" draggable="false">
-            Outils de recherche / analyse (Google Scholar, Cairn, Questionnaires, sondages, Entretiens, Observations terrain…)
-          </li>
-        </ul>
+      <section>
+        <h1 style="margin-top: 3rem">Qui êtes-vous ?</h1>
+        <div class="field"><label for="fullname">Votre nom et prénom :</label><input type="text" id="fullname" /></div>
+        <div class="field"><label for="poste">Votre poste :</label><input type="text" id="poste" /></div>
       </section>
-      <section data-key="7">
-        <h1>La·e designer doit-il utiliser l’IA pour : </h1>
-        <p class="small" style="text-align: center">
-          Placez les pastilles selon l'importance de la réponse : près du centre
-          si elle est primordiale et loin du centre si elle n'est pas importante
-        </p>
-        <span style="flex: 1"></span>
-        <chart-radar>
-          <radar-point data-type="technique"
-            >Générer des images / visuels</radar-point
-          >
-          <radar-point data-type="artistique"
-            >Trouver des idées / pistes artistiques</radar-point
-          >
-          <radar-point data-type="strategique"
-            >Analyser et structurer des données</radar-point
-          >
-          <radar-point data-type="recherche"
-            >Rechercher de l'information</radar-point
-          >
-          <span>Designer</span>
-          <div>label</div>
-          <canvas></canvas>
-        </chart-radar>
-        <span style="flex: 1"></span>
-      </section>
-      <section data-key="8">
-        <h1>Attendez-vous principalement d’un·e designer, qu’iel :</h1>
-        <p class="small" style="text-align: center">
-          Déplacez les curseurs pour accorder plus ou moins d'importance à
-          chaque réponse
-        </p>
-        <span style="flex: 1"></span>
-        <div
-          class="multibarres"
-          onpointermove="dragHandleUpdate(event)"
-          onpointercancel="dragHandleStop(event)"
-          onpointerup="dragHandleStop(event)"
-          data-segments="third"
-        >
-          <div id="ranges"></div>
-          <div id="labels"></div>
-        </div>
-        <span style="flex: 1"></span>
-      </section>
-      <section data-key="9">
-        <h1>Dans le contexte d’un projet visant à améliorer l’accueil dans les Maisons France* Services d’un département, à partir des retours et des difficultés des usagers, comment la.le designer intervient-iel :</h1>
-        <p class="small" style="text-align: center">
-          Classez chaque élément par ordre d'importance (le plus important est en haut)
-        </p>
-        <ul class="sortlist">
-          <li data-type="artistique" draggable="false">
-            Par la narration et la présentation des données
-          </li>
-          <li data-type="technique" draggable="false">
-            Par la mise en forme d’un produit ou d’un service à partir de contraintes imposées
-          </li>
-          <li data-type="strategique" draggable="false">
-            Par la définition des besoins et l’identification des opportunités
-          </li>
-          <li data-type="recherche" draggable="false">
-            Par la collecte et l’analyse de données (questionnaires, entretiens, observations, synthèse etc.)
-          </li>
-        </ul>
-      </section>
-      <section data-key="10">
-        <h1>
-          Dans votre structure, avec qui la·le designer est-iel en lien direct :
-        </h1>
-        <p class="small" style="text-align: center">
-          Rapprochez les pastilles pour définir des liens étroits, ou
-          éloignez-les si leur relation est faible ou inexistante
-        </p>
-        <span style="flex: 1"></span>
-        <chart-radar>
-          <radar-point data-type="recherche">Les chercheurs/experts académiques et universitaires (urbaniste, géographe, sociologue)</radar-point>
-          <radar-point data-type="strategique"
-            >Les commanditaires/clients</radar-point
-          >
-          <radar-point data-type="technique"
-            >Les ingénieurs (service R&D)</radar-point
-          >
-          <radar-point data-type="strategique"
-            >Les services communication et marketing</radar-point
-          >
-          <radar-point data-type="recherche"
-            >Les chercheurs/experts académiques et universitaires (urbaniste, géographe, sociologue)</radar-point
-          >
-          <radar-point data-type="technique"
-            >Les fabricants (service technique, développeur, imprimeur,...)</radar-point
-          >
-          <radar-point data-type="recherche"
-            >Les usagers du produits </radar-point
-          >
-          <radar-point data-type="artistique"
-            >Les pairs (illustrateurs, designers sonores, scénographes, artistes)</radar-point
-          >
-          <span>Designer</span>
-          <div>label</div>
-          <canvas></canvas>
-        </chart-radar>
-        <span style="flex: 1"></span>
-      </section>
-      <section data-key="11">
-        <h1>Selon vous, de quel métier se rapproche celui de designer :</h1>
-        <p class="small" style="text-align: center">
-          Placez les pastilles métier près du centre si elles correspondent au
-          métier de designer, et éloignez-les si ce n'est pas le cas
-        </p>
-        <span style="flex: 1"></span>
-        <chart-radar>
-          <radar-point data-type="recherche">Commerce et marketing</radar-point>
-          <radar-point data-type="artistique">Artisanat et arts plastiques</radar-point>
-          <radar-point data-type="technique">Ingénierie et sciences informatiques</radar-point>
-          <radar-point data-type="strategique">Sciences humaines, psychologiques et sociales</radar-point>
-          <span>Designer</span>
-          <div>label</div>
-          <canvas></canvas>
-        </chart-radar>
-        <span style="flex: 1"></span>
-      </section>
-      <section data-key="12">
-        <h1>La·e designer doit utiliser l'IA pour :</h1>
-        <p class="small" style="text-align: center">
-          La distance des pastilles au centre représente l'importance de l'usage
-          pour un designer
-        </p>
-        <span style="flex: 1"></span>
-        <chart-radar>
-          <radar-point data-type="technique"
-            >Générer des images / visuels</radar-point
-          >
-          <radar-point data-type="artistique"
-            >Trouver des idées / pistes artistiques</radar-point
-          >
-          <radar-point data-type="strategique"
-            >Analyser et structurer des données</radar-point
-          >
-          <radar-point data-type="recherche"
-            >Rechercher de l'information</radar-point
-          >
-          <span>Designer</span>
-          <div>label</div>
-          <canvas></canvas>
-        </chart-radar>
-        <span style="flex: 1"></span>
-      </section>
-      <section data-key="13">
-        <h1>Vous voulez développer un nouveau produit, quelle tâche confiez-vous aux designers ?</h1>
-        <p class="small" style="text-align: center">
-          Classez chaque élément par ordre d'importance (le plus important est en haut)
-        </p>
-        <ul class="sortlist">
-          <li data-type="artistique" draggable="false">
-            S’occuper de l’esthétique du produit
-          </li>
-          <li data-type="technique" draggable="false">
-            Exécuter des tâches et produire des maquettes, prototypes, visuels
-          </li>
-          <li data-type="strategique" draggable="false">
-            Coordonner les équipes de production et faire l’intermédiaire avec le client
-          </li>
-          <li data-type="recherche" draggable="false">
-            Interroger les usagers et les données (in)disponibles (entretien, data, etc.)
-          </li>
-        </ul>
-      </section>
-      <section data-key="14">
-        <h1>
-          Qu'attendez-vous qu'un·e designer prenne en compte lors d'un projet ?
-        </h1>
-        <p class="small" style="text-align: center">
-          Plus vous placez une pastille près du centre, plus vous estimez la
-          responsabilité importante.
-        </p>
-        <span style="flex: 1"></span>
-        <chart-radar>
-          <radar-point data-type="strategique"
-            >Limite son impact écologique et environnemental</radar-point
-          >
-          <radar-point data-type="technique"
-            >Réponde aux attentes du commanditaire</radar-point
-          >
-          <radar-point data-type="recherche"
-            >Respecte les contraintes réglementaires et légales (accessibilité, protection des données)</radar-point
-          >
-          <radar-point data-type="recherche"
-            >Respecte les usagers (éthique, pas de manipulation, inclusivité, honnêteté)</radar-point
-          >
-          <radar-point data-type="strategique"
-            >Reste dans le budget imparti</radar-point
-          >
-          <radar-point data-type="technique"
-            >Fonctionne et puisse techniquement être réalisé</radar-point
-          >
-          <radar-point data-type="artistique"
-            >Soit beau et visuellement cohérent</radar-point
-          >
-          <span>Designer</span>
-          <div>label</div>
-          <canvas></canvas>
-        </chart-radar>
-        <span style="flex: 1"></span>
-      </section>
-      <section
-        data-key="15"
-        data-footerless=""
-        id="result"
-        style="justify-content: center; align-items: center"
-      >
+      <section id="result" style="justify-content: center; align-items: center">
         <h1>Votre vision du profil du designer :</h1>
-        <ul id="res" style="font-size: 1.5rem"></ul>
-        <div style="font-size: 1.5rem">
-          <span id="res-name">Nom</span>,
-
-          <span id="res-company">Entreprise</span>
-          
-        </div>
+        <div id="shapes" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.5rem"></div>
+        <p id="res-text" style="text-align: center; font-style: italic"></p>
       </section>
     </main>
-
+    <div id="live" class="sr" aria-live="polite"></div>
     <footer>
-      <button onpointerdown="moveToPrevSlide(event)">Précédent</button>
-      <div><span id="page-number">1</span>/<span id="page-count"></span></div>
-      <button onpointerdown="moveToNextSlide(event)">Suivant</button>
+      <button class="btn ghost" id="prev">Précédent</button>
+      <button class="btn" id="next">Suivant ✓</button>
     </footer>
 
-    <svg style="position: absolute; width: 0; height: 0; pointer-events: none">
-      <!-- Note: We expand the canvas a bit more (-30%) so the blur doesn't get clipped -->
-      <filter
-        id="fuzzy-grain-blur"
-        x="-30%"
-        y="-30%"
-        width="160%"
-        height="160%"
-      >
-        <!-- 1. Generate noise -->
-        <feTurbulence
-          type="fractalNoise"
-          baseFrequency="0.5"
-          numOctaves="3"
-          result="noise"
-        />
-
-        <!-- 2. Displace edges -->
-        <feDisplacementMap
-          in="SourceGraphic"
-          in2="noise"
-          scale="12"
-          xChannelSelector="R"
-          yChannelSelector="G"
-          result="displaced"
-        />
-
-        <!-- 3. Add grain texture -->
-        <feColorMatrix
-          type="saturate"
-          values="0"
-          in="noise"
-          result="monoNoise"
-        />
-        <feBlend
-          in="displaced"
-          in2="monoNoise"
-          mode="multiply"
-          result="blended"
-        />
-        <feComposite
-          in="blended"
-          in2="displaced"
-          operator="in"
-          result="grainyElement"
-        />
-
-        <!-- 4. BLUR EVERYTHING AT THE END -->
-        <feGaussianBlur in="grainyElement" stdDeviation=".8" />
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <filter id="grain" x="-5%" y="-60%" width="110%" height="220%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" result="n" />
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="6" xChannelSelector="R" yChannelSelector="G" />
+        <feGaussianBlur stdDeviation="0.4" />
       </filter>
     </svg>
-
-    <svg width="0" height="0" style="position: absolute">
-      <defs>
-        <!-- Change filter id as needed -->
-        <filter id="outline" x="-30%" y="-30%" width="160%" height="160%">
-          <!-- 1. Thicken the original shape (radius = stroke thickness in px) -->
-          <feMorphology
-            in="SourceAlpha"
-            operator="dilate"
-            radius="1"
-            result="dilated"
-          />
-
-          <!-- 2. Define stroke color -->
-          <feFlood flood-color="#000000" result="stroke-color" />
-
-          <!-- 3. Clip the color to the thickened shape -->
-          <feComposite
-            in="stroke-color"
-            in2="dilated"
-            operator="in"
-            result="colored-stroke"
-          />
-
-          <!-- 4. Layer original text on top of the stroke -->
-          <feMerge>
-            <feMergeNode in="colored-stroke" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-    </svg>
-
     <script>
-      const vertShader = `
-  precision mediump float;
-  attribute vec3 aPosition;
-  attribute vec2 aTexCoord;
-  varying vec2 vTexCoord;
-
-  void main() {
-    vTexCoord = aTexCoord;
-    vec4 positionVec4 = vec4(aPosition, 1.0);
-    positionVec4.xy = positionVec4.xy * 2.0 - 1.0;
-    gl_Position = positionVec4;
-  }
-`;
-
-      const fragShader = `
-  // 1. Force high precision on mobile if available
-  #ifdef GL_FRAGMENT_PRECISION_HIGH
-    precision highp float;
-  #else
-    precision mediump float;
-  #endif
-
-  varying vec2 vTexCoord;
-  uniform sampler2D u_texture;
-  uniform vec2 u_resolution;
-
-  // --- TWEAKABLE NOISE CONSTANTS ---
-  const float DISPLACEMENT_STRENGTH = 0.003;
-  const float DISPLACEMENT_SCALE = 120.0;
-  const float GRAIN_INTENSITY = 0.09;
-  const float GRAIN_SCALE = 1350.0;
-
-  // Mobile-safe 1D hash (no sin(), no massive numbers = no precision banding)
-  float hash(vec2 p) {
-    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
-    p3 += dot(p3, p3.yzx + 33.33);
-    return fract((p3.x + p3.y) * p3.z);
-  }
-
-  // Mobile-safe 2D hash for organic displacement
-  vec2 hash2(vec2 p) {
-    vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
-    p3 += dot(p3, p3.yzx + 33.33);
-    return fract((p3.xx + p3.yz) * p3.zy);
-  }
-
-  void main() {
-    // Invert Y for WebGL texture alignment
-    vec2 uv = vec2(vTexCoord.x, 1.0 - vTexCoord.y);
-
-    // 1. Edge displacement
-    vec2 noiseVec = hash2(uv * DISPLACEMENT_SCALE);
-    vec2 displacedUv = clamp(uv + (noiseVec - 0.5) * DISPLACEMENT_STRENGTH, 0.0, 1.0);
-
-    // 2. Sample texture
-    vec4 col = texture2D(u_texture, displacedUv);
-
-    // Early exit if completely transparent (saves mobile battery & avoids artifacts)
-    if (col.a <= 0.001) {
-      gl_FragColor = vec4(0.0);
-      return;
-    }
-
-    // 3. Surface grain
-    float fineGrain = (hash(uv * GRAIN_SCALE) - 0.5) * GRAIN_INTENSITY;
-    col.rgb = clamp(col.rgb + (fineGrain * col.a), 0.0, 1.0);
-
-    // Ensure clean alpha output for Firefox compositor
-    gl_FragColor = col;
-  }
-`;
-
-      const Q_TYPES = {
-        artistique: "artistique",
-        technique: "technique",
-        recherche: "recherche",
-        strategique: "strategique",
+      const [A, T, R, S] = ["artistique", "technique", "recherche", "strategique"];
+      const NAMES = { [A]: "artistique", [T]: "technique", [R]: "académique", [S]: "stratégique" };
+      const COLORS = { [A]: "#f4845f", [T]: "#d956f0", [R]: "#5b8ee6", [S]: "#b8b52a" };
+      const SHAPES = {
+        [A]: "polygon(50% 0,61% 20%,85% 15%,80% 40%,100% 50%,80% 60%,85% 85%,61% 80%,50% 100%,39% 80%,15% 85%,20% 60%,0 50%,20% 40%,15% 15%,39% 20%)",
+        [T]: "polygon(50% 0,100% 100%,0 100%)",
+        [R]: "none",
+        [S]: "circle(50%)",
       };
+      const URL_POST = "https://designostic.kothar.tools/data";
+      const HINTS = { single: "1 réponse possible", multi: "Plusieurs réponses possibles", sliders: "Jaugez l'importance de chaque réponse", rank: "Classez les réponses par ordre d'importance" };
+      const CHECK = "Cochez la ou les éléments puis validez votre réponse";
+      const SECTEURS = "Administration/Fonction publique|Studio de Design/Indépendant|Agroalimentaire|Armement/Défense|Artisanat d'art|Associations|Automobile|Banques/Assurances/Mutuelles|Commerce/Distribution/Equipement|Collectivités locales & territoriales|Communication/Marketing/Publicité|Conseil/Audit/Etude|Construction/Bâtiment/Travaux Publics|Cosmétique|Culture/Sports/Loisirs|Energie|Enseignement/Formation|Environnement|Gestion/Administration des entreprises|Hôtellerie/Restauration/Tourisme|Immobilier|Informatique/Télécommunications|Instituts de recherche|Luxe|Medias/Presse/Edition|Numérique|Professions juridiques|Vente/E-commerce/Internet|Santé/Action sociale|Textile/Mode|Transports/Logistique".split("|");
 
-      const multiQuestions = {
-        first: [
-          {
-            label: "Affirmer sa propre singularité, même si elle ne correspond pas toujours aux attentes du client",
-            type: Q_TYPES.artistique,
-          },
-          {
-            label: "Expérimenter de nouveaux procédés et techniques graphiques pour explorer des possibilités créatives originales",
-            type: Q_TYPES.technique,
-          },
-          {
-            label: "Mettre sa sensibilité personnelle de côté pour répondre précisément à la demande du client",
-            type: Q_TYPES.strategique,
-          },
-          {
-            label: "S'appuyer sur les courants, les références et l'histoire du graphisme plutôt que chercher systématiquement à être original",
-            type: Q_TYPES.recherche,
-          },
-        ],
-        second: [
-          {
-            label: "Savoir dessiner et représenter ses idées visuellement",
-            type: Q_TYPES.technique,
-          },
-          {
-            label: "Avoir une sensibilité artistique et esthétique",
-            type: Q_TYPES.artistique,
-          },
-          {
-            label: "Explorer et expérimenter des approches nouvelles",
-            type: Q_TYPES.recherche,
-          },
-          {
-            label: "Apporter une nouvelle vision d'un produit",
-            type: Q_TYPES.strategique,
-          },
-        ],
-        third: [
-          {
-            label: "Comprenne finement les usagers et leurs besoins",
-            type: Q_TYPES.recherche,
-          },
-          {
-            label: "Perçoive les tendances actuelles et futures du marché",
-            type: Q_TYPES.strategique,
-          },
-          {
-            label: "Développe une culture artistique solide",
-            type: Q_TYPES.artistique,
-          },
-          {
-            label: "Maîtrise les nouveaux outils et technologies",
-            type: Q_TYPES.technique,
-          },
-        ],
-      };
+      // items : [libellé, profil, exclusif?]  (profil absent = question de profil, non notée)
+      const L = (...a) => a.map(([label, type, exclusive]) => ({ label, type, exclusive }));
+      const IN = "Dans votre entreprise…";
 
+      // mode : single (1 réponse) | multi (plusieurs) | sliders | rank (classement)
+      const Q = [
+        { id: "employs", kicker: "Votre profil", title: "Votre entreprise emploie-t-elle des designers ?", mode: "multi", hint: CHECK,
+          items: L(["Salarié.e(s)"], ["Freelance.e(s)"], ["Alternant.e(s)"], ["Stagiaire(s)"], ["Je n'emploie pas de designer", 0, 1]) },
+        { id: "filieres", kicker: "Votre profil", title: "De quelle(s) filière(s) de l'école proviennent-ils.elles ?", mode: "multi", hint: CHECK,
+          items: L(["Graphisme/Motion"], ["UI/UX design"], ["Game Experience Design"], ["Architecture d'intérieur"], ["Scénographie"], ["Design produit/industriel"], ["Design textile/mode"]) },
+        { id: "role", kicker: IN, title: "Quel rôle le·la designer occupe-t-il·elle principalement ?", mode: "sliders",
+          items: L(["Veiller à l'esthétique et à l'identité visuelle des produits ou services", A], ["Produire des contenus de communication", A], ["Concevoir et produire des maquettes et des prototypes", T], ["Adapter les créations aux contraintes techniques et aux procédés de fabrication", T], ["Étudier les besoins des usagers", R], ["Analyser et exploiter les données disponibles", R]) },
+        { id: "collab", kicker: IN, title: "Avec qui la·le designer est-il.elle amené à travailler le plus souvent ?", mode: "multi",
+          items: L(["Les pairs (illustrateurs, designers sonores, scénographes, artistes)", A], ["Les community managers et créateurs de contenu (réseaux sociaux)", S], ["Les ingénieurs et le service R&D", T], ["Les fabricants et prestataires techniques (développeurs, imprimeurs…)", T], ["Chercheurs et experts académiques (urbanistes, sociologues, psychologues)", R], ["Usagers ou utilisateurs des produits et services", R], ["Les commanditaires et clients du projet", S]) },
+        { id: "competences", kicker: IN, title: "Quelle importance accordez-vous à chacune de ces compétences chez un·e designer ?", mode: "rank",
+          items: L(["Avoir une culture artistique solide et un sens de l'esthétique affirmé", A], ["Percevoir les tendances actuelles et futures du marché", S], ["Maîtriser les nouveaux outils et technologies", T], ["Comprendre finement les usagers et leurs besoins", R]) },
+        { id: "outils", kicker: IN, title: "Quel(s) outil(s) le.la designer utilise-t-il.elle le plus ?", mode: "sliders",
+          items: L(["Outils d'expression visuelle (Dessin, Suite Adobe, CAO…).", A], ["Outils de conception / fabrication.(Logiciel 3D, Maquette, Atelier Fab).", T], ["Outils de recherche (Google Scholar, Cairn, sondages, Entretiens, Observations terrain…)", R], ["Outils de gestion projet (Suite Office, Trello, Notion, Canva, Ateliers collaboratifs…)", S]) },
+        { id: "dessin", kicker: IN, title: "Les designers utilisent principalement le dessin pour :", mode: "single",
+          items: L(["Représenter un univers visuel et donner une identité graphique aux projets", A], ["Produire des plans, des schémas techniques et des dessins de conception", T], ["Organiser des idées, clarifier des concepts complexes et structurer un raisonnement (schéma, brainstorming)", R], ["Communiquer des idées auprès des collaborateurs et des clients (personas, parcours utilisateurs…)", S]) },
+        { id: "ia", kicker: IN, title: "Il est principalement attendu que la·le designer utilise l'IA pour :", mode: "multi",
+          items: L(["Trouver et explorer des inspirations et des nouvelles pistes créatives", A], ["Générer des contenus audio/vidéos, des visuels, des rendus 3D, etc…", T], ["Rechercher de l'information et approfondir certaines notions et connaissances complexes", R], ["Structurer, analyser et synthétiser des données pour mieux les communiquer ensuite", S], ["Nous ne souhaitons pas que nos designers utilisent l'IA", 0, 1]) },
+        { id: "garant", kicker: IN, title: "Le.la designer est avant-tout garant.e de :", mode: "sliders",
+          items: L(["De la qualité esthétique du produit ou du service", A], ["Des contraintes techniques, organisationnelles et budgétaires", T], ["Du respect des usagers, notamment des enjeux éthiques, d'accessibilité et d'inclusivité", R], ["De l'adéquation du projet avec les attentes du client et les besoins du marché", S]) },
+        { id: "graphiste", kicker: IN, title: "Si vous deviez aujourd'hui faire appel à un designer graphique, attendriez-vous d'abord qu'il.elle :", mode: "single",
+          items: L(["Applique son univers graphique à vos produits", A], ["S'adapte à l'identité visuelle de votre entreprise", T], ["Explore de nouvelles approches, techniques et formes d'expression", R], ["Fasse évoluer l'identité visuelle de votre entreprise pour soutenir son positionnement et ses évolutions", S]) },
+        { id: "cas", kicker: "Cas pratique", title: "Vous travaillez à la conception d'un nouveau produit. À quelle étape du projet un.e designer devrait-il.elle consacrer le plus de temps ?", mode: "rank",
+          items: L(["La collecte et l'analyse de données terrain (observations, entretiens, tests utilisateurs, synthèse)", R], ["Le prototypage du produit en répondant à un cahier des charges et des contraintes techniques imposées", T], ["L'identification des opportunités pour orienter le positionnement du produit sur un marché", S], ["L'identité visuelle, la mise en récit et la communication du produit", A]) },
+        { id: "formation", kicker: "Selon ce que vous observez…", title: "De quel domaine de formation le.la designer se rapproche-t-il.elle le plus?", mode: "single",
+          items: L(["Artisanat et arts plastiques", A], ["Ingénierie et sciences informatiques", T], ["Sciences humaines, psychologiques et sociales", R], ["Commerce, marketing et communication", S]) },
+      ];
 
-      const mainEl = document.querySelector("main");
-      const sectionEls = document.querySelectorAll("main section");
-      const footerEl = document.querySelector("footer");
+      const $ = (s) => document.querySelector(s);
+      const esc = (s) => String(s).replace(/[&<>"]/g, (c) => "&#" + c.charCodeAt(0) + ";");
+      const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
-      document.querySelectorAll(".sortlist").forEach((sortlistEl) => {
-        Sortable.create(sortlistEl, {
-          animation: 150,
-          ghostClass: "sortable-ghost",
-        });
+      // état : single → index | multi → [index] | sliders → [0..1] | rank → [index] dans l'ordre
+      const state = {};
+      Q.forEach((q) => {
+        state[q.id] = q.mode === "sliders" ? q.items.map(() => 0.5) : q.mode === "rank" ? shuffle(q.items.map((_, k) => k)) : q.mode === "multi" ? [] : null;
       });
 
-      function noshadow(event) {
-        event.target.style.filter = "unset";
-      }
-
-      function shadow(event) {
-        event.target.style.filter = "drop-shadow(0px 3px 2px black)";
-      }
-
-      document.querySelectorAll(".multibarres").forEach((multibarresEl) => {
-        const ranges = multibarresEl.querySelector("#ranges");
-        const labels = multibarresEl.querySelector("#labels");
-        const parentHeight = ranges.getBoundingClientRect().height;
-
-        const segments = multiQuestions[multibarresEl.dataset.segments];
-
-        for (let i = 0; i < segments.length; i++) {
-          ranges.insertAdjacentHTML(
-            "beforeend",
-            `<sub-range data-key="${segments[i].label}" data-type="${
-              segments[i].type
-            }" data-value="${1 / segments.length}" style="height:${
-              100 / segments.length
-            }%"></sub-range>`
-          );
-
-          labels.insertAdjacentHTML(
-            "beforeend",
-            `<span style="height:${100 / segments.length}%">${
-              segments[i].label
-            }</span>`
-          );
-        }
-
-        for (let i = 0; i < segments.length - 1; i++) {
-          ranges.insertAdjacentHTML(
-            "beforeend",
-            `<svg class="handle" fill="transparent" stroke="black"></svg>`
-          );
-        }
-
-        const handles = multibarresEl.querySelectorAll(".handle");
-
-        for (const handle of handles) {
-          const hh = handle.getBoundingClientRect().height;
-          const hw = handle.getBoundingClientRect().width;
-
-          const centerX = hw - 24 - 52;
-          const centerY = hh / 2;
-
-          handle.innerHTML = `
-        <g
-          onpointerdown="dragHandle(event)"
-        >
-          <circle cx=${centerX} cy=${centerY} r=24 fill="white" class="ds"></circle>
-          <polygon
-            fill="black"
-            points="
-            ${centerX - 6.1},${centerY + 2}
-            ${centerX + 6.1},${centerY + 2}
-            ${centerX}      ,${centerY + 10.5 + 2}
-            "
-          />
-          <polygon
-            fill="black"
-            points="
-            ${centerX - 6.1},${centerY - 2}
-            ${centerX + 6.1},${centerY - 2}
-            ${centerX}      ,${centerY - 10.5 - 2}
-            "
-          />
-      </g>
-      <line x1=${centerX - 24} y1=${centerY} x2=0 y2=${centerY} />
-      <polygon
-        fill="black"
-        points="
-        0   ,${centerY - 6.1}
-        0   ,${centerY + 6.1}
-        10.5,${centerY}
-        "
-      />
-      `;
-        }
-
-        for (let i = 0; i < handles.length; i++) {
-          handles[i].style.transform = `translate(0,calc(-50% + ${
-            (parentHeight / segments.length) * (i + 1)
-          }px))`;
-        }
-      });
-
-      let draggedHandle = null;
-
-      function dragHandle(event) {
-        let svgBox = event.target.closest("svg");
-        if (!svgBox) return;
-
-        draggedHandle = svgBox;
-
-        // 1. CAPTURE the pointer so all moves redirect here, even outside the SVG
-        svgBox.setPointerCapture(event.pointerId);
-
-        svgBox.querySelector("circle").classList.remove("ds");
-      }
-
-      function dragHandleUpdate(event) {
-        if (!draggedHandle) return;
-
-        // 2. Instead of relying on event.target, use the draggedHandle directly!
-        const multibarresParent = draggedHandle.closest(".multibarres");
-        if (!multibarresParent) return;
-
-        const handles = multibarresParent.querySelectorAll(".handle");
-        const indexOfActiveHandle = Array.from(handles).indexOf(draggedHandle);
-
-        const rangeAbove =
-          multibarresParent.querySelectorAll("sub-range")[indexOfActiveHandle];
-        const rangeBelow =
-          multibarresParent.querySelectorAll("sub-range")[
-            indexOfActiveHandle + 1
-          ];
-
-        const ranges = multibarresParent.querySelector("#ranges");
-        const allPrev = Array.from(ranges.querySelectorAll("sub-range"))
-          .slice(0, indexOfActiveHandle)
-          .reduce((acc, el) => acc + parseFloat(el.dataset.value), 0);
-
-        const localY = event.clientY - ranges.getBoundingClientRect().top;
-        const parentHeight = ranges.getBoundingClientRect().height;
-        const newSize = localY / parentHeight - allPrev;
-        const sizeDiff = newSize - rangeAbove.dataset.value;
-
-        if (newSize <= 0.12 || sizeDiff > rangeBelow.dataset.value - 0.12) {
-          return;
-        }
-
-        draggedHandle.style.transform = `translate(0,calc(-50% + ${localY}px))`;
-
-        multibarresParent.querySelectorAll("#labels span")[
-          indexOfActiveHandle
-        ].style.height = newSize * 100 + "%";
-        rangeAbove.style.height = newSize * 100 + "%";
-        rangeAbove.setAttribute("data-value", newSize);
-
-        multibarresParent.querySelectorAll("#labels span")[
-          indexOfActiveHandle + 1
-        ].style.height = (rangeBelow.dataset.value - sizeDiff) * 100 + "%";
-        rangeBelow.style.height =
-          (rangeBelow.dataset.value - sizeDiff) * 100 + "%";
-        rangeBelow.setAttribute(
-          "data-value",
-          rangeBelow.dataset.value - sizeDiff
-        );
-      }
-
-      function dragHandleStop(event) {
-        if (!draggedHandle) return;
-
-        // 3. RELEASE the pointer capture
-        try {
-          draggedHandle.releasePointerCapture(event.pointerId);
-        } catch (_) {}
-
-        draggedHandle.querySelector("circle").classList.add("ds");
-        draggedHandle = null;
-      }
-
-      function moveToNextSlide() {
-        if (mainEl.dataset.currentSlide >= sectionEls.length - 1) {
-          return;
-        }
-
-        mainEl.dataset.currentSlide = parseInt(mainEl.dataset.currentSlide) + 1;
-
-        displaySection();
-        refreshPageCount();
-      }
-
-      function moveToPrevSlide() {
-        if (mainEl.dataset.currentSlide <= 0) {
-          return;
-        }
-
-        mainEl.dataset.currentSlide = parseInt(mainEl.dataset.currentSlide) - 1;
-
-        displaySection();
-        refreshPageCount();
-      }
-
-      function displaySection() {
-        for (const section of sectionEls) {
-          section.style.display = "none";
-        }
-
-        footerEl.hidden = true;
-
-        const currentSection = sectionEls[mainEl.dataset["currentSlide"]];
-        currentSection.style.display = "";
-
-        // Instantly paint the chart when slide becomes visible
-        const radar = currentSection.querySelector("chart-radar");
-        if (radar && radar._redrawChart) {
-          radar._redrawChart();
-        }
-
-        footerEl.style.display =
-          currentSection.dataset.footerless == "" ? "none" : "";
-      }
-
-      function refreshPageCount() {
-        document.querySelector("#page-number").textContent =
-          parseInt(mainEl.dataset.currentSlide) + 1;
-      }
-
-      const chartRadarEls = document.querySelectorAll("chart-radar");
-      let completedSetups = 0;
-
-      chartRadarEls.forEach((radarEl) => {
-        const labelEl = radarEl.querySelector("div");
-        labelEl.style.display = "none";
-
-        const points = radarEl.querySelectorAll("radar-point");
-        points.forEach((p) => {
-          p.dataset.x = 0;
-          p.dataset.y = 0;
-        });
-
-        new p5((p) => {
-          const POINT_DIAMETER = 40;
-          let draggedPoint = null;
-          let pg = null; // 2D offscreen buffer
-          let grainShader = null;
-          let canvasEl = null;
-
-          let lastX = 0;
-          let lastY = 0;
-
-          p.setup = function () {
-            const dimensions = radarEl.getBoundingClientRect();
-            const existingCanvas = radarEl.querySelector("canvas");
-
-            // 1. Run main canvas in WebGL mode attached to the existing canvas
-            canvasEl = p.createCanvas(
-              dimensions.width,
-              dimensions.height,
-              p.WEBGL,
-              existingCanvas
-            ).elt;
-
-            // 2. Offscreen 2D buffer (where all crisp geometry is drawn)
-            pg = p.createGraphics(dimensions.width, dimensions.height);
-
-            // 3. Compile GPU shader
-            grainShader = p.createShader(vertShader, fragShader);
-
-            // 4. Render on-demand only (0 FPS when idle)
-            p.noLoop();
-
-            // Expose redraw to the DOM element so section switching paints immediately
-            radarEl._redrawChart = () => p.redraw();
-
-            // Setup initial points layout
-            for (let i = 0; i < points.length; i++) {
-              const angle = (i / (points.length - 1)) * Math.PI;
-              points[i].dataset.x =
-                pg.width / 2 + pg.width * 0.25 * Math.cos(angle);
-              points[i].dataset.y =
-                pg.width / 2 + pg.width * 0.25 * -Math.sin(angle);
-            }
-
-            // --- POINTER EVENTS ---
-            canvasEl.addEventListener("pointerdown", (event) => {
-              const rect = canvasEl.getBoundingClientRect();
-              const touchX = event.clientX - rect.left;
-              const touchY = event.clientY - rect.top;
-
-              for (let i = 0; i < points.length; i++) {
-                const px = parseFloat(points[i].dataset.x);
-                const py = parseFloat(points[i].dataset.y);
-
-                if (p.dist(px, py, touchX, touchY) < POINT_DIAMETER * 0.8) {
-                  draggedPoint = points[i];
-                  labelEl.textContent = draggedPoint.textContent;
-                  labelEl.style.display = "";
-
-                  lastX = event.clientX;
-                  lastY = event.clientY;
-
-                  canvasEl.setPointerCapture(event.pointerId);
-                  p.redraw();
-                  return;
-                }
-              }
-            });
-
-            canvasEl.addEventListener("pointermove", (event) => {
-              if (!draggedPoint) return;
-
-              const deltaX = event.clientX - lastX;
-              const deltaY = event.clientY - lastY;
-
-              lastX = event.clientX;
-              lastY = event.clientY;
-
-              const nextPosition = {
-                x: parseFloat(draggedPoint.dataset.x) + deltaX,
-                y: parseFloat(draggedPoint.dataset.y) + deltaY,
-              };
-
-              if (
-                p.dist(
-                  nextPosition.x,
-                  nextPosition.y,
-                  pg.width * 0.5,
-                  pg.height * 0.5
-                ) >=
-                pg.width * 0.5
-              ) {
-                return;
-              }
-
-              draggedPoint.dataset.x = nextPosition.x;
-              draggedPoint.dataset.y = nextPosition.y;
-
-              p.redraw();
-            });
-
-            const stopDragging = (event) => {
-              if (draggedPoint) {
-                try {
-                  canvasEl.releasePointerCapture(event.pointerId);
-                } catch (_) {}
-                draggedPoint = null;
-                labelEl.style.display = "none";
-                p.redraw();
-              }
-            };
-
-            canvasEl.addEventListener("pointerup", stopDragging);
-            canvasEl.addEventListener("pointercancel", stopDragging);
-
-            completedSetups += 1;
-            if (completedSetups === chartRadarEls.length) {
-              initPage();
-            }
-          };
-
-          p.draw = function () {
-            if (!pg) return;
-
-            // --- STEP A: DRAW 2D ELEMENTS TO OFFSCREEN BUFFER ---
-            p.clear();
-            pg.clear();
-
-            // Calculate half the width
-            const radius = pg.width / 2;
-
-            // Set the gradient to end at 'radius' (pg.width / 2) instead of hardcoded 200
-            let myGradient = pg.drawingContext.createRadialGradient(
-              radius,
-              radius,
-              0, // Start at center (0)
-              radius,
-              radius,
-              radius // End exactly at half the canvas width
-            );
-            myGradient.addColorStop(0, "#D532F2FF");
-            myGradient.addColorStop(1, "#D532F200");
-
-            pg.drawingContext.fillStyle = myGradient;
-            pg.noStroke();
-            pg.circle(radius, radius, pg.width); // Circle diameter = pg.width (radius = pg.width / 2)
-
-            pg.drawingContext.fillStyle = myGradient;
-            pg.noStroke();
-            pg.circle(pg.width / 2, pg.height / 2, pg.width);
-
-            // Concentric guide rings
-            pg.push();
-            pg.fill("transparent");
-            pg.stroke("white");
-            pg.strokeWeight(2);
-            pg.circle(pg.width / 2, pg.height / 2, pg.width * 0.25);
-            pg.circle(pg.width / 2, pg.height / 2, pg.width * 0.5);
-            pg.circle(pg.width / 2, pg.height / 2, pg.width * 0.75);
-            pg.pop();
-
-            // Central purple hub
-            pg.push();
-            pg.fill("#570066");
-            pg.stroke("white");
-            pg.strokeWeight(5);
-            pg.circle(pg.width / 2, pg.height / 2, 50);
-            pg.pop();
-
-            // Interactive points
-            pg.push();
-            for (const point of points) {
-              pg.noStroke();
-              pg.fill("white");
-              pg.circle(point.dataset.x, point.dataset.y, POINT_DIAMETER);
-
-              if (point !== draggedPoint) {
-                pg.fill("#CECECE");
-              } else {
-                pg.fill("black");
-              }
-              pg.circle(point.dataset.x, point.dataset.y, 15);
-
-              point.dataset.value =
-                (p.dist(
-                  point.dataset.x,
-                  point.dataset.y,
-                  pg.width / 2,
-                  pg.height / 2
-                ) /
-                  pg.width) *
-                2;
-            }
-            pg.pop();
-
-            // --- STEP B: PASS TO GPU SHADER (RUNS IN ~0.3ms) ---
-            p.shader(grainShader);
-            grainShader.setUniform("u_texture", pg);
-            grainShader.setUniform("u_resolution", [p.width, p.height]);
-
-            // Draw full-canvas rect covering the WebGL viewport
-            p.noStroke();
-            p.rect(-p.width / 2, -p.height / 2, p.width, p.height);
-          };
-        }, radarEl);
-      });
-
-      function initPage() {
-        displaySection();
-        document.querySelector("#page-count").textContent = sectionEls.length;
-      }
-
-      function collaboration(hasCollaborated) {
-        sessionStorage.setItem("collaboration", hasCollaborated);
-        moveToNextSlide();
-      }
-
-      let employs = [];
-
-      function toggleEmploy(event) {
-        event.target.classList.toggle("primary");
-
-        if (event.target.classList.contains("primary")) {
-          employs.push(event.target.innerText);
-        } else {
-          employs = employs.filter((e) => e != event.target.innerText);
-        }
-      }
-
-      let info = {};
-
-      function collectAllInfo() {
-        info = {
-          consent: document.querySelector("#consent").checked,
-          collaboration: sessionStorage.getItem("collaboration"),
-          company: document.querySelector("#company").value,
-          secteur: document.querySelector("#secteur").value,
-          fullname: document.querySelector("#fullname").value,
-          employs,
-          answers: {},
+      SECTEURS.forEach((s) => $("#secteur").add(new Option(s, s)));
+      $("#secteur").insertAdjacentHTML("afterbegin", '<option value="">...</option>');
+      $("#secteur").value = "";
+
+      function build(q) {
+        const el = document.createElement("section");
+        el.innerHTML = `<h2>${q.kicker}</h2><h1 id="h-${q.id}" tabindex="-1">${q.title}</h1><p class="hint">${q.hint || HINTS[q.mode]}</p><div></div>`;
+        const body = el.lastChild;
+        body.setAttribute("role", q.mode === "single" ? "radiogroup" : "group");
+        body.setAttribute("aria-labelledby", "h-" + q.id);
+        if (q.mode === "rank") body.classList.add("rank");
+        const draw = () => {
+          const st = state[q.id];
+          body.innerHTML =
+            q.mode === "sliders"
+              ? q.items.map((it, k) => `<label class="sl">${it.label}<span class="gauge" style="--v:${st[k]}"><span class="track"></span><span class="fill"></span><span class="thumb"></span><input type="range" min="0" max="100" data-k="${k}" value="${st[k] * 100}" aria-valuetext="${Math.round(st[k] * 100)} %" /></span></label>`).join("")
+              : q.mode === "rank"
+              ? `<p class="hint" style="text-align:left">Le plus important</p>` +
+                st.map((idx, p) => `<div class="opt on"><span class="arrows"><button data-p="${p}" data-d="-1" aria-label="Monter : ${q.items[idx].label}">▲</button><button data-p="${p}" data-d="1" aria-label="Descendre : ${q.items[idx].label}">▼</button></span>${q.items[idx].label}</div>`).join("")
+              : q.items.map((it, k) => { const on = q.mode === "single" ? st === k : st.includes(k); return `<button class="opt${on ? " on" : ""}" data-k="${k}" ${q.mode === "single" ? `role="radio" aria-checked="${on}"` : `aria-pressed="${on}"`}><span class="dot" aria-hidden="true"></span>${it.label}</button>`; }).join("");
         };
-
-        // tout sauvegarder sans traiter et faire le traitement a part
-        const questionEls = document.querySelectorAll(
-          ".sortlist,chart-radar,.multibarres"
-        );
-
-        for (const questionEl of questionEls) {
-          info.answers[questionEl.closest("section").dataset.key] =
-            questionEl.outerHTML;
-        }
-
-        let total = 0;
-        let artistique = 0;
-        let technique = 0;
-        let recherche = 0;
-        let strategique = 0;
-
-        for (const list of document.querySelectorAll(".sortlist")) {
-          let subArtistique = 0;
-          let subTechnique = 0;
-          let subRecherche = 0;
-          let subStrategique = 0;
-
-          const items = Array.from(list.querySelectorAll("li"));
-
-          for (let i = 0; i < items.length; i++) {
-            switch (items[items.length - 1 - i].dataset.type) {
-              case Q_TYPES.artistique:
-                subArtistique += i;
-                break;
-              case Q_TYPES.recherche:
-                subRecherche += i;
-                break;
-              case Q_TYPES.strategique:
-                subStrategique += i;
-                break;
-              case Q_TYPES.technique:
-                subTechnique += i;
-                break;
-              default:
-                console.error("hu ohhh...");
-            }
-          }
-
-          const subTotal =
-            subArtistique + subTechnique + subRecherche + subStrategique;
-
-          artistique += subArtistique / subTotal;
-          technique += subTechnique / subTotal;
-          recherche += subRecherche / subTotal;
-          strategique += subStrategique / subTotal;
-
-          total += 1;
-        }
-
-        // faire les radar avec un pool de 0 a 1 pour chaque point
-        for (const radar of document.querySelectorAll("chart-radar")) {
-          let subArtistique = 0;
-          let subTechnique = 0;
-          let subRecherche = 0;
-          let subStrategique = 0;
-
-          radar.querySelectorAll("radar-point").forEach((point) => {
-            switch (point.dataset.type) {
-              case Q_TYPES.artistique:
-                subArtistique += 1 - parseFloat(point.dataset.value);
-                break;
-              case Q_TYPES.recherche:
-                subRecherche += 1 - parseFloat(point.dataset.value);
-                break;
-              case Q_TYPES.strategique:
-                subStrategique += 1 - parseFloat(point.dataset.value);
-                break;
-              case Q_TYPES.technique:
-                subTechnique += 1 - parseFloat(point.dataset.value);
-                break;
-              default:
-                console.error("hu ohhh 2 ...");
-            }
-          });
-
-          const subTotal =
-            subArtistique + subTechnique + subRecherche + subStrategique;
-
-          artistique += subArtistique / subTotal;
-          technique += subTechnique / subTotal;
-          recherche += subRecherche / subTotal;
-          strategique += subStrategique / subTotal;
-
-          total += 1;
-        }
-
-        // faire les multibarres
-        for (const multibarreEl of document.querySelectorAll(".multibarres")) {
-          for (const subRange of multibarreEl.querySelectorAll("sub-range")) {
-            switch (subRange.dataset.type) {
-              case Q_TYPES.artistique:
-                artistique += parseFloat(subRange.dataset.value);
-                break;
-              case Q_TYPES.recherche:
-                recherche += parseFloat(subRange.dataset.value);
-                break;
-              case Q_TYPES.strategique:
-                strategique += parseFloat(subRange.dataset.value);
-                break;
-              case Q_TYPES.technique:
-                technique += parseFloat(subRange.dataset.value);
-                break;
-              default:
-                console.error("hu ohhh 3 ...");
-            }
-          }
-
-          total += 1;
-        }
-
-        info.artistique = artistique / total;
-        info.technique = technique / total;
-        info.recherche = recherche / total;
-        info.strategique = strategique / total;
-
-        // TODO post to somewhere
-        info.date = Date.now();
-
-        fetch("https://designostic.kothar.tools/data", {
-          method: "POST",
-          headers: {
-            // Essential: Tells the server to parse the body as JSON
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(info),
-        }).then((res) => {
-          console.log(res);
-        });
-
-        const resultView = document.querySelector("#result");
-        resultView.querySelector("#res-name").textContent = info.fullname;
-        resultView.querySelector("#res-company").textContent = info.company;
-        resultView.querySelector("#res").innerHTML = [
-          { label: "artistique", value: info.artistique },
-          { label: "technique", value: info.technique },
-          { label: "stratégique", value: info.strategique },
-          { label: "recherche", value: info.recherche },
-        ]
-          .sort((a, b) => b.value - a.value)
-          .map(
-            (pole) =>
-              `<div>${pole.label} : ${(pole.value * 100).toFixed(1)} %</div>`
-          )
-          .join("");
-
-        return info;
+        body.onclick = (e) => {
+          const b = e.target.closest("[data-k],[data-p]");
+          if (!b) return;
+          const st = state[q.id];
+          if (b.dataset.p) {
+            const p = +b.dataset.p, d = +b.dataset.d;
+            if (p + d < 0 || p + d >= st.length) return;
+            [st[p], st[p + d]] = [st[p + d], st[p]];
+          } else if (q.mode === "single") state[q.id] = +b.dataset.k;
+          else if (q.mode === "multi") {
+            const k = +b.dataset.k;
+            state[q.id] = st.includes(k) ? st.filter((x) => x !== k) : q.items[k].exclusive ? [k] : [...st.filter((x) => !q.items[x].exclusive), k];
+          } else return;
+          draw();
+          if (b.dataset.p) {
+            const np = +b.dataset.p + +b.dataset.d;
+            body.querySelector(`[data-p="${np}"][data-d="${b.dataset.d}"]`)?.focus();
+            $("#live").textContent = `Position ${np + 1} sur ${state[q.id].length}`;
+          } else body.querySelector(`[data-k="${b.dataset.k}"]`)?.focus();
+        };
+        body.oninput = (e) => {
+          const v = e.target.value / 100;
+          state[q.id][+e.target.dataset.k] = v;
+          e.target.parentNode.style.setProperty("--v", v);
+          e.target.setAttribute("aria-valuetext", Math.round(v * 100) + " %");
+        };
+        // Glisser-déposer (souris + doigt) pour les classements
+        body.onpointerdown = (e) => {
+          if (q.mode !== "rank" || e.button > 0 || e.target.closest("button")) return;
+          const card = e.target.closest(".opt");
+          if (!card) return;
+          const items = [...body.querySelectorAll(".opt")], from = items.indexOf(card);
+          const rects = items.map((x) => x.getBoundingClientRect());
+          const h = rects[from].height + 12, y0 = e.clientY;
+          let to = from;
+          card.setPointerCapture(e.pointerId);
+          card.classList.add("drag");
+          card.onpointermove = (ev) => {
+            const dy = ev.clientY - y0, cy = rects[from].top + rects[from].height / 2 + dy;
+            card.style.transform = `translateY(${dy}px)`;
+            const t = rects.findIndex((r) => cy < r.bottom);
+            to = t < 0 ? items.length - 1 : t;
+            items.forEach((it, k) => {
+              if (k !== from) it.style.transform = from < to && k > from && k <= to ? `translateY(${-h}px)` : from > to && k >= to && k < from ? `translateY(${h}px)` : "";
+            });
+          };
+          card.onpointerup = () => {
+            const st = state[q.id];
+            st.splice(to, 0, st.splice(from, 1)[0]);
+            draw();
+            $("#live").textContent = `Position ${to + 1} sur ${st.length}`;
+          };
+          card.onpointercancel = () => draw();
+        };
+        draw();
+        return el;
       }
 
-      // 1. Select the target element
-      const target = document.querySelector("#result");
-
-      // 2. Define the observer
-      const observer = new IntersectionObserver(
-        (entries, observer) => {
-          entries.forEach((entry) => {
-            // Check if the element has entered the viewport
-            if (entry.isIntersecting) {
-              collectAllInfo();
-
-              // (Optional) Stop watching if you only want it to trigger once
-              observer.unobserve(entry.target);
-            }
+      // ---------- Calcul : chaque question pèse exactement 1 (somme des 4 profils = 1) ----------
+      function vec(q) {
+        const st = state[q.id], v = { [A]: 0, [T]: 0, [R]: 0, [S]: 0 };
+        if (q.mode === "rank") {
+          // 1er = 100 %, 2e = 50 %, 3e = 25 %, dernier = 0 %
+          st.forEach((idx, p) => { const t = q.items[idx].type; if (t) v[t] += [1, 0.5, 0.25, 0][p] ?? 0; });
+        } else {
+          // force moyenne par profil (évite qu'un profil avec plus d'items pèse davantage)
+          const n = {}, sum = {};
+          q.items.forEach((it, k) => {
+            if (!it.type) return;
+            n[it.type] = (n[it.type] || 0) + 1;
+            sum[it.type] = (sum[it.type] || 0) + (q.mode === "sliders" ? st[k] : q.mode === "single" ? +(st === k) : +st.includes(k));
           });
-        },
-        {
-          threshold: 0.01, // 0.5 means trigger when 50% of the element is visible (0.0 to 1.0)
+          for (const t in n) v[t] = sum[t] / n[t];
         }
-      );
-
-      // 3. Start observing
-      observer.observe(target);
-
-      function shuffleInner(element) {
-        if (!element) return;
-
-        // 1. Get direct children only
-        const children = Array.from(element.children);
-
-        // 2. Fisher-Yates shuffle
-        for (let i = children.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [children[i], children[j]] = [children[j], children[i]];
-        }
-
-        // 3. Re-append in the new order
-        element.append(...children);
+        const tot = Object.values(v).reduce((a, b) => a + b, 0);
+        return tot > 0 ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, x / tot])) : null; // null = question sans signal (profil, « pas d'IA »)
       }
 
-      document
-        .querySelectorAll(".sortlist, chart-radar")
-        .forEach((el) => shuffleInner(el));
+      const read = (q) => {
+        const st = state[q.id], lab = (k) => q.items[k].label;
+        return q.mode === "sliders" ? q.items.map((it, k) => ({ label: it.label, value: st[k] })) : q.mode === "rank" ? st.map(lab) : q.mode === "single" ? lab(st) : st.map(lab);
+      };
+
+      let sent = false;
+      function finish() {
+        if (sent) return;
+        sent = true;
+        const vs = Q.map(vec).filter(Boolean);
+        const g = (id) => $("#" + id).value.trim();
+        const info = {
+          consent: $("#consent").checked, company: g("company"), secteur: $("#secteur").value, fullname: g("fullname"), poste: g("poste"),
+          employs: read(Q[0]), filieres: read(Q[1]), answers: Object.fromEntries(Q.map((q) => [q.id, read(q)])), date: Date.now(),
+        };
+        for (const k of [A, T, R, S]) info[k] = vs.reduce((a, v) => a + v[k], 0) / (vs.length || 1);
+        fetch(URL_POST, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(info) }).catch(console.error);
+
+        $("#shapes").innerHTML = [A, T, S, R].map((k) => {
+          const p = Math.round(info[k] * 100), w = Math.round(70 + info[k] * 230);
+          return `<div style="width:min(${w}px,58vw);aspect-ratio:1;background:${COLORS[k]};clip-path:${SHAPES[k]};display:grid;place-content:center;text-align:center;color:rgba(0,0,0,.55);font-style:italic"><b style="font-size:${14 + p * 0.5}px">${p}%</b><small>${NAMES[k]}</small></div>`;
+        }).join("");
+        const top = [A, T, R, S].sort((a, b) => info[b] - info[a])[0];
+        const name = NAMES[top][0].toUpperCase() + NAMES[top].slice(1);
+        $("#res-text").innerHTML = `${esc(info.fullname)} (${esc(info.company)}),<br />pour votre entreprise, le designer a avant-tout un profil<br /><b style="font-size:2rem;color:${COLORS[top]}">${name} !</b>`;
+      }
+
+      // ---------- Navigation ----------
+      $("#result").before(...Q.map(build));
+      const main = $("main"), next = $("#next"), foot = $("footer");
+      const slides = [...main.children];
+      let cur = 0;
+      const valid = (n) => {
+        if (n === 1) return !!$("#company").value.trim();
+        if (n === 2) return !!$("#fullname").value.trim();
+        const q = Q[n - 3];
+        if (!q) return true;
+        const st = state[q.id];
+        return q.mode === "single" ? st !== null : q.mode === "multi" ? st.length > 0 : true;
+      };
+      function go(n) {
+        cur = n;
+        slides.forEach((s, k) => (s.hidden = k !== n));
+        foot.hidden = n === 0 || n === slides.length - 1;
+        next.disabled = !valid(n);
+        main.scrollTop = 0;
+        const hd = slides[n].querySelector("h1");
+        if (hd) { hd.tabIndex = -1; hd.focus({ preventScroll: true }); }
+        if (n === slides.length - 1) finish();
+      }
+      main.addEventListener("click", () => (next.disabled = !valid(cur)));
+      main.addEventListener("input", () => (next.disabled = !valid(cur)));
+      $("#start").onclick = () => go(1);
+      next.onclick = () => go(cur + 1);
+      $("#prev").onclick = () => go(cur - 1);
+      go(0);
     </script>
   </body>
 </html>

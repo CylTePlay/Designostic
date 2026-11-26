@@ -157,8 +157,9 @@
               <th>Participant</th>
               <th>Société</th>
               <th>Secteur</th>
-              <th>Consent.</th>
+              <th>Poste</th>
               <th>Emploie</th>
+              <th>Filières</th>
               <th class="num">Artistique</th>
               <th class="num">Technique</th>
               <th class="num">Recherche</th>
@@ -167,7 +168,7 @@
           </thead>
           <tbody id="tbody">
             <tr>
-              <td colspan="9" class="empty">Chargement...</td>
+              <td colspan="11" class="empty">Chargement...</td>
             </tr>
           </tbody>
         </table>
@@ -213,7 +214,7 @@
         } réponse(s) • màj ${new Date().toLocaleTimeString("fr-FR")}`;
 
         if (filtered.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="9" class="empty">Aucune donnée trouvée</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="11" class="empty">Aucune donnée trouvée</td></tr>`;
           return;
         }
 
@@ -235,8 +236,9 @@
                 <td>${row.fullname || "-"}</td>
                 <td>${row.company || "-"}</td>
                 <td>${row.secteur || "-"}</td>
-                <td>${collab}</td>
+                <td>${row.poste || "-"}</td>
                 <td>${employs}</td>
+                <td>${Array.isArray(row.filieres) && row.filieres.length ? row.filieres.join(", ") : "-"}</td>
                 <td class="num">${formatPercent(row.artistique)}</td>
                 <td class="num">${formatPercent(row.technique)}</td>
                 <td class="num">${formatPercent(row.recherche)}</td>
