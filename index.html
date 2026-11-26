@@ -375,6 +375,20 @@
             style="display: flex; flex-direction: column; align-items: center"
           >
             <h2 style="margin-bottom: 0.5rem">
+              <label for="company">Secteur d'activité :</label>
+            </h2>
+            <select name="secteur" id="secteur">
+            <option value="">...</option>
+            <option value="numerique">Numérique</option>
+            <option value="industrie">Industrie</option>
+            <option value="studio">Studio</option>
+            <option value="agroalimentaire">agroalimentaire</option>
+            </select>
+          </div>
+          <div
+            style="display: flex; flex-direction: column; align-items: center"
+          >
+            <h2 style="margin-bottom: 0.5rem">
               <label for="fullname">Vos nom et prénom :</label>
             </h2>
             <input
@@ -441,6 +455,23 @@
             je n'emploie pas de designer
           </button>
         </ul>
+        <div
+            style="display: flex; flex-direction: column; align-items: center"
+          >
+            <h2 style="margin-bottom: 0.5rem">
+              <label for="company">Si oui, quel profil de designer ?</label>
+            </h2>
+            <select name="secteur" id="secteur">
+            <option value="">...</option>
+            <option value="ui/ux">UI/UX Design & Product Design</option>
+            <option value="design produit">Design produit</option>
+            <option value="design graphique">Design graphique</option>
+            <option value="design transport">Design transport</option>
+            <option value="motion design">Motion Design</option>
+            <option value="archi">Architecture d'intérieure</option>
+            <option value="scenographie">Scénographie</option>
+            </select>
+          </div>
         <span></span>
       </section>
       <section data-key="4">
@@ -715,7 +746,9 @@
         <ul id="res" style="font-size: 1.5rem"></ul>
         <div style="font-size: 1.5rem">
           <span id="res-name">Nom</span>,
+
           <span id="res-company">Entreprise</span>
+          
         </div>
       </section>
     </main>
@@ -1420,6 +1453,7 @@
           consent: document.querySelector("#consent").checked,
           collaboration: sessionStorage.getItem("collaboration"),
           company: document.querySelector("#company").value,
+          secteur: document.querySelector("#secteur").value,
           fullname: document.querySelector("#fullname").value,
           employs,
           answers: {},
