@@ -144,6 +144,7 @@
         />
 
         <div class="toolbar-right">
+          <a href="https://designostic.kothar.tools/data" download><button id="downloadBtn">Télécharger</button></a>
           <span class="small" id="meta-info">0 réponses • en attente</span>
           <button id="refreshBtn">Actualiser</button>
         </div>
@@ -183,6 +184,7 @@
       const tbody = document.querySelector("#tbody");
       const searchInput = document.querySelector("#search");
       const refreshBtn = document.querySelector("#refreshBtn");
+      const downloadBtn = document.querySelector("#downloadBtn");
       const metaInfo = document.querySelector("#meta-info");
 
       function formatPercent(val) {
@@ -264,6 +266,8 @@
           metaInfo.textContent = "Erreur de connexion au serveur";
         }
       }
+
+      
 
       searchInput.addEventListener("input", renderTable);
       refreshBtn.addEventListener("click", fetchData);
